@@ -1,0 +1,12 @@
+# Alternative Docker : l'application écoute sur 127.0.0.1:3005, Nginx (hôte) fait le reverse proxy.
+# MySQL est celui déjà installé sur le VPS (host.docker.internal).
+services:
+  app:
+    build: .
+    image: communaute-bapa:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:3005:3005"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

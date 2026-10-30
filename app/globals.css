@@ -1,26 +1,221 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-work-sans);
+  --font-heading: var(--font-cinzel);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+
+  /* Palette Royaume Bapa */
+  --color-terre: #9c5b34;
+  --color-terre-dark: #6b3318;
+  --color-terre-light: #b4693d;
+  --color-or: #b08d57;
+  --color-or-dark: #8a6a2f;
+  --color-or-light: #e2c894;
+  --color-sable: #c9a876;
+  --color-olive: #5e6b3a;
+  --color-brun: #392517;
+  --color-brun-soft: #6b4423;
+  --color-nuit: #2a1810;
+  --color-creme: #fbf6ee;
+  --color-creme-light: #fffcf6;
+  --color-creme-dark: #f5ede0;
+  --color-indigo-bapa: #34405f;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: #fbf6ee;
+  --foreground: #392517;
+  --card: #fffcf6;
+  --card-foreground: #392517;
+  --popover: #fffcf6;
+  --popover-foreground: #392517;
+  --primary: #9c5b34;
+  --primary-foreground: #fff8ee;
+  --secondary: #f5ede0;
+  --secondary-foreground: #392517;
+  --muted: #f3e8d6;
+  --muted-foreground: #7a5a40;
+  --accent: #f3e3c8;
+  --accent-foreground: #6b3318;
+  --destructive: #b3261e;
+  --success: #5e6b3a;
+  --success-foreground: #fbf6ee;
+  --warning: #b9904f;
+  --border: #e9d6b8;
+  --input: #e2cfaf;
+  --ring: #b08d57;
+  --chart-1: #9c5b34;
+  --chart-2: #b08d57;
+  --chart-3: #5e6b3a;
+  --chart-4: #6b4423;
+  --chart-5: #c9a876;
+  --radius: 0.75rem;
+  --sidebar: #fdf8ef;
+  --sidebar-foreground: #392517;
+  --sidebar-primary: #9c5b34;
+  --sidebar-primary-foreground: #fff8ee;
+  --sidebar-accent: #f3e3c8;
+  --sidebar-accent-foreground: #6b3318;
+  --sidebar-border: #e9d6b8;
+  --sidebar-ring: #b08d57;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Motif losanges doré (fonds clairs) */
+  .bapa-motif {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23B08D57' stroke-width='1.2' opacity='.3'%3E%3Cpath d='M28 3 53 28 28 53 3 28Z'/%3E%3Cpath d='M28 15 41 28 28 41 15 28Z'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 56px 56px;
+  }
+  /* Motif losanges crème (fonds sombres) */
+  .bapa-motif-light {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23FFFCF6' stroke-width='1.3' opacity='.26'%3E%3Cpath d='M28 3 53 28 28 53 3 28Z'/%3E%3Cpath d='M28 15 41 28 28 41 15 28Z'/%3E%3Cpath d='M0 0 9 9M56 0 47 9M0 56 9 47M56 56 47 47'/%3E%3C/g%3E%3Ccircle cx='28' cy='28' r='2.6' fill='%23FFFCF6' opacity='.34'/%3E%3C/svg%3E");
+    background-size: 56px 56px;
+  }
+  /* Frise triangulaire sous l'en-tête */
+  .bapa-frieze {
+    height: 6px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='6' viewBox='0 0 28 6'%3E%3Cpath d='M0 0h14L7 6z' fill='%23C9A876'/%3E%3Cpath d='M14 0h14l-7 6z' fill='%239C5B34' opacity='.75'/%3E%3C/svg%3E")
+      repeat-x;
+    background-size: 28px 6px;
+    opacity: 0.85;
+  }
+  /* Bandeau d'en-tête : liseré dégradé + fond crème */
+  .bapa-header-bg {
+    background:
+      linear-gradient(90deg, #9c5b34 0%, #c9a876 50%, #9c5b34 100%) top / 100% 3px no-repeat,
+      linear-gradient(180deg, #fffdf8 0%, #fbf4e8 100%);
+  }
+  .bapa-header-motif {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cg fill='none' stroke='%23B08D57' stroke-width='1' opacity='.35'%3E%3Cpath d='M18 2 34 18 18 34 2 18Z'/%3E%3Cpath d='M18 10 26 18 18 26 10 18Z'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 36px 36px;
+    mask-image: linear-gradient(90deg, #000 0%, transparent 18%, transparent 82%, #000 100%);
+  }
+  /* Numéros évidés « 01 » */
+  .text-outline {
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 252, 246, 0.8);
+  }
+  .text-outline-dark {
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(156, 91, 52, 0.6);
+  }
+  .bapa-photo-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(42, 24, 16, 0.32) 0%,
+      rgba(42, 24, 16, 0) 22%,
+      rgba(42, 24, 16, 0.18) 38%,
+      rgba(42, 24, 16, 0.72) 62%,
+      rgba(42, 24, 16, 0.95) 100%
+    );
+  }
+  .bapa-hero-overlay {
+    background:
+      linear-gradient(90deg, rgba(42, 24, 16, 0.86) 0%, rgba(42, 24, 16, 0.55) 45%, rgba(42, 24, 16, 0.15) 100%),
+      linear-gradient(0deg, rgba(42, 24, 16, 0.7) 0%, rgba(42, 24, 16, 0) 40%);
+  }
+  .tone-terre {
+    background: linear-gradient(150deg, #b4693d 0%, #8a4b28 100%);
+  }
+  .tone-nuit {
+    background: linear-gradient(150deg, #4a3020 0%, #2a1810 100%);
+  }
+  .tone-ocre {
+    background: linear-gradient(150deg, #b9904f 0%, #8a6a2f 100%);
+  }
+  .tone-indigo {
+    background: linear-gradient(150deg, #34405f 0%, #1e2539 100%);
+  }
+  .tone-olive {
+    background: linear-gradient(150deg, #6f7d45 0%, #4a5530 100%);
+  }
+  .tone-creme {
+    background: radial-gradient(120% 90% at 85% 10%, #fffcf6 0%, #f4e9d8 45%, #e9d6b8 100%);
+  }
+}
+
+@keyframes bapa-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-bapa-spin {
+  animation: bapa-spin 40s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-bapa-spin {
+    animation: none;
+  }
 }

@@ -1,0 +1,622 @@
+// Schéma de la Communauté Bapa (communaute.bapa-officiel.com)
+// Phase actuelle : non branché, les pages utilisent lib/mock via lib/data.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Utilisateurs et authentification ----------
+
+enum Role {
+  MEMBER
+  ASSOCIATION_ADMIN
+  TREASURER
+  SUPER_ADMIN
+}
+
+enum MemberStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum Gender {
+  FEMME
+  HOMME
+}
+
+enum BapaLink {
+  NAISSANCE
+  FILIATION
+  ALLIANCE
+  AMI
+}
+
+enum AuthProvider {
+  EMAIL
+  PHONE
+  GOOGLE
+  FACEBOOK
+  MAGIC_LINK
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String?      @unique
+  phone         String?      @unique
+  passwordHash  String?
+  emailVerified DateTime?
+  phoneVerified DateTime?
+  role          Role         @default(MEMBER)
+  status        MemberStatus @default(PENDING)
+  provider      AuthProvider @default(EMAIL)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  profile          Profile?
+  accounts         Account[]
+  sessions         Session[]
+  memberships      Membership[]
+  registrations    EventRegistration[]
+  posts            Post[]
+  contributions    Contribution[]            @relation("ContributionMember")
+  recordedPayments Contribution[]            @relation("ContributionRecorder")
+  documents        Document[]
+  threads          ForumThread[]
+  replies          ForumReply[]
+  participations   ConversationParticipant[]
+  messages         Message[]
+  reviewedBy       RegistrationReview[]      @relation("ReviewedUser")
+  reviewsDone      RegistrationReview[]      @relation("Reviewer")
+  businesses       Business[]
+  recommendations  BusinessRecommendation[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  accessToken       String? @db.Text
+  refreshToken      String? @db.Text
+  expiresAt         Int?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Quartier {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  profiles Profile[]
+}
+
+model Profile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  firstName       String
+  lastName        String
+  gender          Gender?
+  birthYear       Int?
+  avatarUrl       String?
+  quartierId      String?
+  family          String?
+  link            BapaLink?
+  country         String?
+  city            String?
+  profession      String?
+  bio             String?   @db.Text
+  motivation      String?   @db.Text
+  sponsorName     String?
+  showInDirectory Boolean   @default(true)
+  /// Renseigné quand le membre termine (ou passe) l'assistant d'accueil
+  onboardedAt     DateTime?
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quartier        Quartier? @relation(fields: [quartierId], references: [id])
+
+  @@index([quartierId])
+  @@index([country])
+}
+
+model RegistrationReview {
+  id         String       @id @default(cuid())
+  userId     String
+  reviewerId String
+  decision   MemberStatus
+  comment    String?      @db.Text
+  createdAt  DateTime     @default(now())
+  user       User         @relation("ReviewedUser", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer   User         @relation("Reviewer", fields: [reviewerId], references: [id])
+
+  @@index([userId])
+  @@index([reviewerId])
+}
+
+// ---------- Associations ----------
+
+enum AssociationCategory {
+  COMMUNAUTE
+  HOMMES
+  FEMMES
+  QUARTIER
+  GROUPE
+  DIASPORA
+}
+
+enum AssociationZone {
+  AFRIQUE
+  EUROPE
+  AMERIQUE_DU_NORD
+}
+
+enum MembershipRole {
+  MEMBRE
+  RESPONSABLE
+  TRESORIER
+  SECRETAIRE
+}
+
+model Association {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  name        String
+  shortName   String
+  /// Signification du sigle (ex. « Fils Dynamiques de Bapa Yaoundé »)
+  fullName    String?
+  category    AssociationCategory
+  zone        AssociationZone
+  country     String
+  region      String?
+  /// Nulle lorsque seule la région ou le pays est connu
+  city        String?
+  adevipa     Boolean             @default(false)
+  source      String?
+  notes       String?             @db.Text
+  description String              @db.Text
+  mission     String?             @db.Text
+  coverUrl    String?
+  tone        String              @default("terre")
+  foundedYear Int?
+  isPublic    Boolean             @default(true)
+  meetingInfo String?
+  createdAt   DateTime            @default(now())
+
+  memberships   Membership[]
+  events        Event[]
+  posts         Post[]
+  projects      Project[]
+  documents     Document[]
+  threads       ForumThread[]
+  conversations Conversation[]
+
+  @@index([country, city])
+}
+
+model Membership {
+  id            String         @id @default(cuid())
+  userId        String
+  associationId String
+  role          MembershipRole @default(MEMBRE)
+  since         DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  association   Association    @relation(fields: [associationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, associationId])
+  @@index([associationId])
+}
+
+// ---------- Événements et actualités ----------
+
+enum EventCategory {
+  FESTIVAL
+  REUNION
+  CULTURE
+  SOLIDARITE
+  SPORT
+}
+
+model Event {
+  id            String              @id @default(cuid())
+  slug          String              @unique
+  title         String
+  excerpt       String
+  description   String              @db.Text
+  startsAt      DateTime
+  endsAt        DateTime?
+  location      String
+  imageUrl      String?
+  category      EventCategory
+  isPublic      Boolean             @default(true)
+  capacity      Int?
+  associationId String?
+  association   Association?        @relation(fields: [associationId], references: [id])
+  registrations EventRegistration[]
+
+  @@index([associationId])
+  @@index([startsAt])
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  guests    Int      @default(0)
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([userId])
+}
+
+enum PostCategory {
+  ANNONCE
+  VIE_DU_VILLAGE
+  PROJET
+  ASSOCIATION
+  CARNET
+}
+
+model Post {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  title         String
+  excerpt       String
+  content       String       @db.LongText
+  imageUrl      String?
+  category      PostCategory
+  pinned        Boolean      @default(false)
+  publishedAt   DateTime?
+  authorId      String
+  associationId String?
+  author        User         @relation(fields: [authorId], references: [id])
+  association   Association? @relation(fields: [associationId], references: [id])
+
+  @@index([authorId])
+  @@index([associationId])
+}
+
+// ---------- Projets et contributions ----------
+
+enum ProjectStatus {
+  A_VENIR
+  EN_COURS
+  TERMINE
+}
+
+enum ProjectCategory {
+  EDUCATION
+  SANTE
+  INFRASTRUCTURE
+  CULTURE
+  EAU
+}
+
+enum Currency {
+  XAF
+  EUR
+  USD
+}
+
+enum PaymentMethod {
+  ORANGE_MONEY
+  MTN_MOMO
+  CARD
+  PAYPAL
+  CASH
+}
+
+enum ContributionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Project {
+  id            String          @id @default(cuid())
+  slug          String          @unique
+  title         String
+  summary       String          @db.Text
+  description   String          @db.LongText
+  imageUrl      String?
+  category      ProjectCategory
+  status        ProjectStatus   @default(A_VENIR)
+  goalXaf       Int
+  startDate     DateTime?
+  endDate       DateTime?
+  associationId String?
+  association   Association?    @relation(fields: [associationId], references: [id])
+  updates       ProjectUpdate[]
+  contributions Contribution[]
+
+  @@index([associationId])
+}
+
+model ProjectUpdate {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  text      String   @db.Text
+  date      DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model Contribution {
+  id           String             @id @default(cuid())
+  reference    String             @unique
+  userId       String
+  projectId    String
+  amount       Decimal            @db.Decimal(12, 2)
+  currency     Currency           @default(XAF)
+  amountXaf    Int
+  method       PaymentMethod
+  status       ContributionStatus @default(PENDING)
+  providerRef  String?
+  anonymous    Boolean            @default(false)
+  recordedById String?
+  createdAt    DateTime           @default(now())
+  user         User               @relation("ContributionMember", fields: [userId], references: [id])
+  recordedBy   User?              @relation("ContributionRecorder", fields: [recordedById], references: [id])
+  project      Project            @relation(fields: [projectId], references: [id])
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([recordedById])
+}
+
+// ---------- Documents, forum, messagerie ----------
+
+enum DocumentType {
+  PV
+  STATUTS
+  RAPPORT
+  FINANCIER
+  AUTRE
+}
+
+model Document {
+  id            String       @id @default(cuid())
+  title         String
+  type          DocumentType
+  fileUrl       String
+  fileType      String
+  sizeKb        Int
+  associationId String?
+  uploadedById  String
+  uploadedAt    DateTime     @default(now())
+  association   Association? @relation(fields: [associationId], references: [id])
+  uploadedBy    User         @relation(fields: [uploadedById], references: [id])
+
+  @@index([associationId])
+  @@index([uploadedById])
+}
+
+enum ForumCategory {
+  GENERAL
+  VILLAGE
+  PROJETS
+  CULTURE
+  ENTRAIDE
+}
+
+model ForumThread {
+  id            String        @id @default(cuid())
+  title         String
+  content       String        @db.Text
+  category      ForumCategory
+  pinned        Boolean       @default(false)
+  locked        Boolean       @default(false)
+  reported      Boolean       @default(false)
+  views         Int           @default(0)
+  authorId      String
+  associationId String?
+  createdAt     DateTime      @default(now())
+  lastReplyAt   DateTime      @default(now())
+  author        User          @relation(fields: [authorId], references: [id])
+  association   Association?  @relation(fields: [associationId], references: [id])
+  replies       ForumReply[]
+
+  @@index([authorId])
+  @@index([associationId])
+}
+
+model ForumReply {
+  id        String      @id @default(cuid())
+  threadId  String
+  authorId  String
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author    User        @relation(fields: [authorId], references: [id])
+
+  @@index([threadId])
+  @@index([authorId])
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+model Conversation {
+  id            String                    @id @default(cuid())
+  type          ConversationType
+  name          String?
+  associationId String?
+  createdAt     DateTime                  @default(now())
+  association   Association?              @relation(fields: [associationId], references: [id])
+  participants  ConversationParticipant[]
+  messages      Message[]
+
+  @@index([associationId])
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  authorId       String
+  content        String       @db.Text
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author         User         @relation(fields: [authorId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([authorId])
+}
+
+// ---------- Entrepreneurs Bapa ----------
+
+enum BusinessVisibility {
+  PUBLIC
+  MEMBERS
+}
+
+enum BusinessStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  REJECTED
+}
+
+enum JobType {
+  CDI
+  CDD
+  STAGE
+  FREELANCE
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+/// Liste prédéfinie, modifiable depuis le back-office
+model BusinessSector {
+  id         String     @id @default(cuid())
+  name       String     @unique
+  icon       String?
+  position   Int        @default(0)
+  businesses Business[]
+}
+
+model Business {
+  id          String             @id @default(cuid())
+  slug        String             @unique
+  ownerId     String
+  sectorId    String
+  name        String
+  logoUrl     String?
+  description String             @db.Text
+  phone       String?
+  whatsapp    String?
+  email       String?
+  website     String?
+  facebook    String?
+  instagram   String?
+  linkedin    String?
+  tiktok      String?
+  address     String?
+  city        String
+  country     String
+  mapsUrl     String?
+  visibility  BusinessVisibility @default(PUBLIC)
+  status      BusinessStatus     @default(PENDING)
+  reviewNote  String?            @db.Text
+  featured    Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  owner           User                     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sector          BusinessSector           @relation(fields: [sectorId], references: [id])
+  services        BusinessService[]
+  recommendations BusinessRecommendation[]
+  jobOffers       JobOffer[]
+
+  @@index([ownerId])
+  @@index([sectorId])
+  @@index([status, visibility])
+  @@index([country, city])
+}
+
+model BusinessService {
+  id          String    @id @default(cuid())
+  businessId  String
+  name        String
+  description String?   @db.Text
+  price       Decimal?  @db.Decimal(12, 2)
+  currency    Currency?
+  position    Int       @default(0)
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+}
+
+model BusinessRecommendation {
+  businessId String
+  userId     String
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([businessId, userId])
+  @@index([userId])
+}
+
+model JobOffer {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  businessId   String
+  title        String
+  type         JobType
+  city         String
+  country      String
+  description  String    @db.Text
+  applyContact String
+  status       JobStatus @default(OPEN)
+  publishedAt  DateTime  @default(now())
+  expiresAt    DateTime?
+  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([status, publishedAt])
+}
