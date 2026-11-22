@@ -25,18 +25,26 @@ const steps = [
   { icon: KeyRound, title: "Accéder à votre espace", text: "Associations, projets, événements et messagerie vous attendent." },
 ]
 
-const FEATURED = ["as17", "as34", "as73"]
-
 /** Données Prisma lues à la requête — évite l'échec du build Docker sans DB. */
 export const dynamic = "force-dynamic"
 
 export default async function HomePage() {
+  const emptyStats = { total: 0, countries: 0, cities: 0, cameroon: 0, diaspora: 0, adevipa: 0 }
   const [associations, associationStats, events, projects, featured] = await Promise.all([
-    getAssociations({ publicOnly: true }),
-    getAssociationStats(),
+    getAssociations({ publicOnly: true }).catch((err) => {
+      console.error("[home] associations", err)
+      return []
+    }),
+    getAssociationStats().catch((err) => {
+      console.error("[home] associationStats", err)
+      return emptyStats
+    }),
     getEvents({ publicOnly: true, upcoming: true }),
     getProjects(),
-    getFeaturedBusiness(),
+    getFeaturedBusiness().catch((err) => {
+      console.error("[home] featuredBusiness", err)
+      return null
+    }),
   ])
 
   return (
@@ -163,7 +171,7 @@ export default async function HomePage() {
           }
         />
         <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {FEATURED.map((id) => associations.find((a) => a.id === id)).filter((a) => !!a).map((a, i) => (
+          {associations.slice(0, 3).map((a, i) => (
             <AssociationTile key={a.id} association={a} href={`/associations/${a.slug}`} num={`0${i + 1}`} className="min-h-96" />
           ))}
         </div>
