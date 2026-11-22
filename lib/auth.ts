@@ -32,20 +32,26 @@ function splitDisplayName(name?: string | null) {
   }
 }
 
+function appleEnabled() {
+  if (isDockerBuild) return false
+  // Opt-in explicite : un Apple mal configuré provoque error=Configuration sur TOUT Auth.js
+  if (process.env.AUTH_APPLE_ENABLED !== "1") return false
+  const id = process.env.AUTH_APPLE_ID?.trim()
+  const secret = process.env.AUTH_APPLE_SECRET?.trim()
+  return Boolean(id && secret?.startsWith("eyJ") && !id.endsWith("communaute1"))
+}
+
+function googleEnabled() {
+  if (isDockerBuild) return false
+  return Boolean(process.env.AUTH_GOOGLE_ID?.trim() && process.env.AUTH_GOOGLE_SECRET?.trim())
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
-    ...(!isDockerBuild && process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
-      ? [Google({ allowDangerousEmailAccountLinking: true })]
-      : []),
-    // Services ID uniquement (ex. com.bapa-officiel.communaute), pas l'App ID …communaute1
-    ...(!isDockerBuild &&
-    process.env.AUTH_APPLE_ID &&
-    process.env.AUTH_APPLE_SECRET?.startsWith("eyJ") &&
-    !process.env.AUTH_APPLE_ID.endsWith("1")
-      ? [Apple({ allowDangerousEmailAccountLinking: true })]
-      : []),
+    ...(googleEnabled() ? [Google({ allowDangerousEmailAccountLinking: true })] : []),
+    ...(appleEnabled() ? [Apple({ allowDangerousEmailAccountLinking: true })] : []),
     Credentials({
       name: "credentials",
       credentials: {
