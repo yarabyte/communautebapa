@@ -38,6 +38,9 @@ yarn-error.log*
 AuthKey_*.p8
 *.p8
 
+# Dumps Postgres locaux
+/backups/
+
 # vercel
 .vercel
 
