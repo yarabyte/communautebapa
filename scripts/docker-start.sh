@@ -3,6 +3,7 @@ set -e
 cd /app
 
 echo "Starting Communauté Bapa (PORT=${PORT:-3000})…"
+echo "Runtime env: DATABASE_URL=$([ -n \"$DATABASE_URL\" ] && echo set || echo MISSING) AUTH_SECRET=$([ -n \"$AUTH_SECRET\" ] && echo set || echo MISSING) AUTH_URL=${AUTH_URL:-unset}"
 
 if [ -n "$DATABASE_URL" ]; then
   echo "Prisma migrate deploy…"

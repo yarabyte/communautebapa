@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { PhoneInput } from "./phone-input"
-import { OrSeparator, SocialButtons } from "./social-buttons"
+import { SocialButtons } from "./social-buttons"
 
 const schema = z
   .object({
@@ -85,8 +85,7 @@ export function RegisterForm() {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
       <FieldGroup className="gap-5">
-        <SocialButtons mode="register" callbackUrl={oauthCallbackUrl} />
-        <OrSeparator label="ou avec" />
+        <SocialButtons mode="register" callbackUrl={oauthCallbackUrl} withSeparator separatorLabel="ou avec" />
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field data-invalid={!!errors.firstName}>

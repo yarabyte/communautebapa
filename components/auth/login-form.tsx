@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
-import { OrSeparator, SocialButtons } from "./social-buttons"
+import { SocialButtons } from "./social-buttons"
 import { PhoneInput } from "./phone-input"
 
 const emailSchema = z.object({
@@ -52,7 +52,7 @@ function EmailLogin() {
     if (result?.error) {
       const message =
         result.error === "Configuration"
-          ? "Config Auth : AUTH_URL=https://… , AUTH_SECRET (sans +), et désactivez Apple (pas de AUTH_APPLE_ENABLED) le temps de tester l'email."
+          ? "Connexion indisponible (config serveur / base). Réessayez dans un instant ou contactez l’admin."
           : result.error === "CredentialsSignin" || result.error === "CallbackRouteError"
             ? "Email ou mot de passe incorrect."
             : result.error === "ACCOUNT_REJECTED"
@@ -196,8 +196,7 @@ export function LoginForm() {
           <PhoneLogin />
         </TabsContent>
       </Tabs>
-      <OrSeparator label="ou continuer avec" />
-      <SocialButtons callbackUrl={redirect} />
+      <SocialButtons callbackUrl={redirect} withSeparator />
     </div>
   )
 }

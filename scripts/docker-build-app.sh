@@ -1,5 +1,7 @@
 #!/bin/sh
 # Build Next.js sans la vraie DB / OAuth (Coolify injecte sinon les secrets dans le Dockerfile).
+# Important : lib/db.ts et auth.config.ts lisent process.env['…'] au runtime pour
+# ne PAS garder ces placeholders factices après le build.
 set -e
 cd /app
 
@@ -17,5 +19,5 @@ export AUTH_GOOGLE_SECRET=""
 export AUTH_APPLE_ID=""
 export AUTH_APPLE_SECRET=""
 
-echo "docker-build-app: DOCKER_BUILD=$DOCKER_BUILD DATABASE_URL=dummy OAuth=off"
+echo "docker-build-app: DOCKER_BUILD=$DOCKER_BUILD DATABASE_URL=dummy OAuth=off (runtime env via brackets)"
 npm run build

@@ -8,6 +8,8 @@ export const authConfig = {
     error: "/connexion",
   },
   providers: [],
+  // Brackets : évite l'inline du placeholder de `docker build`.
+  secret: process.env["AUTH_SECRET"],
   callbacks: {
     authorized({ auth, request }) {
       const { pathname } = request.nextUrl

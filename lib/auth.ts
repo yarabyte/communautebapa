@@ -48,9 +48,12 @@ function googleEnabled() {
   return Boolean(process.env.AUTH_GOOGLE_ID?.trim() && process.env.AUTH_GOOGLE_SECRET?.trim())
 }
 
+const oauthOn = () => googleEnabled() || appleEnabled()
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
+  // Adapter inutile (et parfois fragile) tant que seuls les credentials sont actifs.
+  ...(oauthOn() ? { adapter: PrismaAdapter(prisma) } : {}),
   providers: [
     ...(googleEnabled() ? [Google({ allowDangerousEmailAccountLinking: true })] : []),
     ...(appleEnabled() ? [Apple({ allowDangerousEmailAccountLinking: true })] : []),
@@ -61,30 +64,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Mot de passe", type: "password" },
       },
       async authorize(raw) {
-        const parsed = credentialsSchema.safeParse(raw)
-        if (!parsed.success) return null
+        try {
+          const parsed = credentialsSchema.safeParse(raw)
+          if (!parsed.success) return null
 
-        const email = parsed.data.email.toLowerCase().trim()
-        const user = await prisma.user.findUnique({
-          where: { email },
-          include: { profile: true },
-        })
-        if (!user?.passwordHash) return null
+          const email = parsed.data.email.toLowerCase().trim()
+          const user = await prisma.user.findUnique({
+            where: { email },
+            include: { profile: true },
+          })
+          if (!user?.passwordHash) return null
 
-        const valid = await verifyPassword(parsed.data.password, user.passwordHash)
-        if (!valid) return null
+          const valid = await verifyPassword(parsed.data.password, user.passwordHash)
+          if (!valid) return null
 
-        if (user.status === "REJECTED" || user.status === "SUSPENDED") {
-          return null
-        }
+          if (user.status === "REJECTED" || user.status === "SUSPENDED") {
+            return null
+          }
 
-        const name = user.profile ? `${user.profile.firstName} ${user.profile.lastName}` : email
-        return {
-          id: user.id,
-          email: user.email,
-          name,
-          role: user.role,
-          status: user.status,
+          const name = user.profile ? `${user.profile.firstName} ${user.profile.lastName}` : email
+          return {
+            id: user.id,
+            email: user.email,
+            name,
+            role: user.role,
+            status: user.status,
+          }
+        } catch (error) {
+          console.error("[auth] authorize failed:", error)
+          throw error
         }
       },
     }),

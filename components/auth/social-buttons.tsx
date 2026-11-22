@@ -37,12 +37,17 @@ const providerLabels: Record<SocialProvider, string> = {
 export function SocialButtons({
   mode = "login",
   callbackUrl,
+  withSeparator = false,
+  separatorLabel = "ou continuer avec",
 }: {
   mode?: "login" | "register"
   callbackUrl?: string
+  withSeparator?: boolean
+  separatorLabel?: string
 }) {
   const [loading, setLoading] = useState<SocialProvider | null>(null)
-  const [enabled, setEnabled] = useState<Record<SocialProvider, boolean>>({ google: true, apple: true })
+  const [enabled, setEnabled] = useState<Record<SocialProvider, boolean>>({ google: false, apple: false })
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     getProviders()
@@ -55,12 +60,13 @@ export function SocialButtons({
       .catch(() => {
         setEnabled({ google: false, apple: false })
       })
+      .finally(() => setReady(true))
   }, [])
 
   const connect = async (provider: SocialProvider) => {
     if (!enabled[provider]) {
       toast.message(`${providerLabels[provider]} n'est pas encore configuré`, {
-        description: `Ajoutez AUTH_${provider.toUpperCase()}_ID et AUTH_${provider.toUpperCase()}_SECRET dans .env, puis redémarrez le serveur.`,
+        description: `Ajoutez AUTH_${provider.toUpperCase()}_ENABLED=1 et les clés dans Coolify, puis redéployez.`,
       })
       return
     }
@@ -75,31 +81,46 @@ export function SocialButtons({
     }
   }
 
+  const showGoogle = enabled.google
+  const showApple = enabled.apple
+  const showSocial = showGoogle || showApple
+  const showMagicLink = mode === "login"
+
+  if (ready && !showSocial && !showMagicLink) return null
+
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 rounded-full bg-card"
-          disabled={!!loading}
-          onClick={() => connect("google")}
-        >
-          {loading === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleIcon />}
-          Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="h-11 rounded-full bg-card"
-          disabled={!!loading}
-          onClick={() => connect("apple")}
-        >
-          {loading === "apple" ? <Loader2 className="size-4 animate-spin" /> : <AppleIcon />}
-          Apple
-        </Button>
-      </div>
-      {mode === "login" && (
+      {ready && showSocial && withSeparator && mode === "login" && <OrSeparator label={separatorLabel} />}
+      {ready && showSocial && (
+        <div className={`grid gap-2.5 ${showGoogle && showApple ? "sm:grid-cols-2" : ""}`}>
+          {showGoogle && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 rounded-full bg-card"
+              disabled={!!loading}
+              onClick={() => connect("google")}
+            >
+              {loading === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleIcon />}
+              Google
+            </Button>
+          )}
+          {showApple && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 rounded-full bg-card"
+              disabled={!!loading}
+              onClick={() => connect("apple")}
+            >
+              {loading === "apple" ? <Loader2 className="size-4 animate-spin" /> : <AppleIcon />}
+              Apple
+            </Button>
+          )}
+        </div>
+      )}
+      {ready && showSocial && withSeparator && mode === "register" && <OrSeparator label={separatorLabel} />}
+      {showMagicLink && (
         <Button asChild variant="ghost" className="h-10 rounded-full text-terre hover:text-terre-dark">
           <Link href="/lien-magique">
             <Mail /> Recevoir un lien de connexion par email
