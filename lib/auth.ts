@@ -21,6 +21,9 @@ const oauthProviderMap = {
   apple: "APPLE",
 } as const
 
+/** Pendant `docker build`, Coolify injecte les vraies clés OAuth/DB — on les ignore. */
+const isDockerBuild = process.env.DOCKER_BUILD === "1"
+
 function splitDisplayName(name?: string | null) {
   const parts = (name ?? "").trim().split(/\s+/).filter(Boolean)
   return {
@@ -33,11 +36,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   providers: [
-    ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
+    ...(!isDockerBuild && process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
       ? [Google({ allowDangerousEmailAccountLinking: true })]
       : []),
     // Services ID uniquement (ex. com.bapa-officiel.communaute), pas l'App ID …communaute1
-    ...(process.env.AUTH_APPLE_ID &&
+    ...(!isDockerBuild &&
+    process.env.AUTH_APPLE_ID &&
     process.env.AUTH_APPLE_SECRET?.startsWith("eyJ") &&
     !process.env.AUTH_APPLE_ID.endsWith("1")
       ? [Apple({ allowDangerousEmailAccountLinking: true })]
