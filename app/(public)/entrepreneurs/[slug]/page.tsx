@@ -6,11 +6,7 @@ import { ArrowLeft, Lock, MessageCircle } from "lucide-react"
 import { CtaLink } from "@/components/brand/cta"
 import { BusinessDetail } from "@/components/shared/business-detail"
 import { BusinessLogo } from "@/components/shared/business-card"
-import { getBusiness, getBusinesses, getJobOffers, getRecommendations } from "@/lib/data/businesses"
-
-export async function generateStaticParams() {
-  return (await getBusinesses({ publicOnly: true })).map((b) => ({ slug: b.slug }))
-}
+import { getBusiness, getJobOffers, getRecommendations } from "@/lib/data/businesses"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const b = await getBusiness((await params).slug)

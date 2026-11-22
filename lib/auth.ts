@@ -36,7 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
       ? [Google({ allowDangerousEmailAccountLinking: true })]
       : []),
-    ...(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET
+    ...(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET && process.env.AUTH_APPLE_SECRET.startsWith("eyJ")
       ? [Apple({ allowDangerousEmailAccountLinking: true })]
       : []),
     Credentials({

@@ -8,6 +8,8 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { getBusinessStats } from "@/lib/data/businesses"
 import { getCurrentMember, getPendingRegistrations } from "@/lib/data/members"
 
+export const dynamic = "force-dynamic"
+
 export default async function EspaceLayout({ children }: { children: React.ReactNode }) {
   let member
   try {

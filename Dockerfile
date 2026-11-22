@@ -12,19 +12,14 @@ RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Coolify injecte ces build-args
+# NEXT_PUBLIC_* est inliné au build. Les secrets runtime (DB, SMTP, WhatsApp)
+# ne doivent PAS servir au `next build` : Coolify n'a souvent pas la DB joignable ici.
 ARG NEXT_PUBLIC_SITE_URL=https://communaute.bapa-officiel.com
-ARG AUTH_URL=https://communaute.bapa-officiel.com
-ARG AUTH_SECRET=build-time-placeholder-change-me
-# Placeholder : le client Prisma est généré sans connexion réelle ;
-# les pages DB sont en force-dynamic (pas de fetch DB pendant le build).
-ARG DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build
-
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
-    AUTH_URL=$AUTH_URL \
-    AUTH_SECRET=$AUTH_SECRET \
-    DATABASE_URL=$DATABASE_URL
+    AUTH_URL=$NEXT_PUBLIC_SITE_URL \
+    AUTH_SECRET=build-only-placeholder-not-used-at-runtime \
+    DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build
 
 RUN npx prisma generate
 RUN npm run build
