@@ -12,8 +12,7 @@ RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# NEXT_PUBLIC_* est inliné au build. Les secrets runtime (DB, SMTP, WhatsApp)
-# ne doivent PAS servir au `next build` : Coolify n'a souvent pas la DB joignable ici.
+# NEXT_PUBLIC_* est inliné au build. Pas de vraie DB pendant le build.
 ARG NEXT_PUBLIC_SITE_URL=https://communaute.bapa-officiel.com
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
@@ -27,7 +26,8 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache openssl && addgroup -S nodejs && adduser -S nextjs -G nodejs
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3005 HOSTNAME=0.0.0.0
+# Coolify route par défaut vers 3000
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
@@ -37,5 +37,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modul
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-start.sh ./docker-start.sh
 RUN chmod +x /app/docker-start.sh
 USER nextjs
-EXPOSE 3005
+EXPOSE 3000
 CMD ["sh", "/app/docker-start.sh"]
