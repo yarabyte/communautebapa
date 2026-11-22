@@ -32,9 +32,11 @@ export function ProfileHeader({ member, actions, badge }: { member: Member; acti
               <li className="flex items-center gap-1.5">
                 <MapPin className="size-4 text-or" /> {memberPlace(member)}
               </li>
-              <li className="flex items-center gap-1.5">
-                <Home className="size-4 text-or" /> {[getQuartierName(member.quartierId), member.family].filter(Boolean).join(" · ")}
-              </li>
+              {member.quartierId && (
+                <li className="flex items-center gap-1.5">
+                  <Home className="size-4 text-or" /> {getQuartierName(member.quartierId)}
+                </li>
+              )}
             </ul>
             <p className="text-xs text-muted-foreground">Membre depuis le {formatDate(member.joinedAt)}</p>
           </div>

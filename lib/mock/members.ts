@@ -56,7 +56,7 @@ const seeds: Seed[] = [
 
 const LINKS_CYCLE: NonNullable<Member["link"]>[] = ["NAISSANCE", "FILIATION", "NAISSANCE", "ALLIANCE", "FILIATION"]
 
-const providers: Member["provider"][] = ["EMAIL", "PHONE", "GOOGLE", "FACEBOOK", "MAGIC_LINK"]
+const providers: Member["provider"][] = ["EMAIL", "PHONE", "GOOGLE", "APPLE", "FACEBOOK", "MAGIC_LINK"]
 
 export const members: Member[] = seeds.map(
   ([id, firstName, lastName, gender, quartierId, family, city, country, profession, role, status, joinedAt], i) => ({

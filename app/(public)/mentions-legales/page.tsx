@@ -30,7 +30,7 @@ export default function MentionsLegalesPage() {
         {
           title: "Responsabilité",
           paragraphs: [
-            "Les contenus publiés par les membres (forum, messagerie, profils) relèvent de la responsabilité de leurs auteurs. Les modérateurs peuvent retirer tout contenu contraire à la charte.",
+            "Les contenus publiés par les membres (messagerie, profils) relèvent de la responsabilité de leurs auteurs. Les modérateurs peuvent retirer tout contenu contraire à la charte.",
           ],
         },
       ]}

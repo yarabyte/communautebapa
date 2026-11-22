@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { Camera, HandCoins, MessagesSquare, Plus } from "lucide-react"
+import { HandCoins, Plus } from "lucide-react"
 
 import { ProfileCompletionCard } from "@/components/espace/profile-completion-card"
 import { ProfileForm } from "@/components/espace/profile-form"
@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { monogram } from "@/lib/association-utils"
 import { getMemberAssociations } from "@/lib/data/associations"
 import { getBusinesses } from "@/lib/data/businesses"
-import { getForumThreads } from "@/lib/data/community"
 import { getCurrentMember, getQuartiers } from "@/lib/data/members"
 import { getContributions, projectById } from "@/lib/data/projects"
 import { formatDate, formatMoney } from "@/lib/format"
@@ -24,27 +23,17 @@ export const metadata: Metadata = { title: "Mon profil" }
 
 export default async function ProfilPage() {
   const member = await getCurrentMember()
-  const [quartiers, associations, contributions, threads, myBusinesses] = await Promise.all([
+  const [quartiers, associations, contributions, myBusinesses] = await Promise.all([
     getQuartiers(),
     getMemberAssociations(member.id),
     getContributions({ memberId: member.id }),
-    getForumThreads(),
     getBusinesses({ ownerId: member.id }),
   ])
-  const myThreads = threads.filter((t) => t.authorId === member.id)
   const completion = profileCompletion(member, { associations: associations.length, businesses: myBusinesses.length })
 
   return (
     <div className="flex flex-col gap-6">
-      <ProfileHeader
-        member={member}
-        badge={roleLabels[member.role]}
-        actions={
-          <Button variant="outline" className="rounded-full">
-            <Camera /> Changer la photo
-          </Button>
-        }
-      />
+      <ProfileHeader member={member} badge={roleLabels[member.role]} />
       {completion.percent < 100 && <ProfileCompletionCard completion={completion} />}
       <Tabs defaultValue="infos" className="gap-5">
         <TabsList variant="line" className="w-full justify-start gap-4 border-b border-border">
@@ -92,7 +81,7 @@ export default async function ProfilPage() {
             </Link>
           </Button>
         </TabsContent>
-        <TabsContent value="activite" className="grid gap-6 lg:grid-cols-2">
+        <TabsContent value="activite">
           <SectionCard title="Dernières contributions" href="/espace/contributions" contentClassName="flex flex-col gap-3">
             {contributions.slice(0, 5).map((c) => (
               <div key={c.id} className="flex items-center gap-3">
@@ -100,16 +89,6 @@ export default async function ProfilPage() {
                 <span className="flex-1 truncate text-sm">{projectById(c.projectId)?.title}</span>
                 <span className="text-sm font-medium">{formatMoney(c.amount, c.currency)}</span>
               </div>
-            ))}
-          </SectionCard>
-          <SectionCard title="Mes sujets sur le forum" href="/espace/forum" contentClassName="flex flex-col gap-3">
-            {myThreads.length === 0 && <p className="text-sm text-muted-foreground">Aucun sujet pour le moment.</p>}
-            {myThreads.map((t) => (
-              <Link key={t.id} href={`/espace/forum/${t.id}`} className="flex items-center gap-3 text-sm hover:text-terre">
-                <MessagesSquare className="size-4 text-terre" />
-                <span className="flex-1 truncate">{t.title}</span>
-                <span className="text-xs text-muted-foreground">{t.repliesCount} réponses</span>
-              </Link>
             ))}
           </SectionCard>
         </TabsContent>

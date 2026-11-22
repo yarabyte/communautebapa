@@ -75,7 +75,7 @@ export default async function AssociationPublicPage({ params }: { params: Promis
             <p className="font-heading text-xl leading-snug text-brun sm:text-2xl">{association.mission}</p>
             <p className="text-sm leading-relaxed text-brun-soft">
               L&apos;association fait partie de la communauté Bapa. Ses membres accèdent dans leur espace aux réunions, aux documents
-              (statuts, procès-verbaux), au forum de l&apos;association et à la discussion de groupe.
+              (statuts, procès-verbaux) et à la discussion de groupe.
             </p>
           </div>
 

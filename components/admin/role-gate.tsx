@@ -2,16 +2,20 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { ShieldX } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { roleLabels } from "@/lib/labels"
 import { adminRolesFor, canAccess } from "@/lib/navigation"
 import { useRole } from "@/lib/role-context"
+import type { Role } from "@/lib/types"
 
 export function RoleGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { role } = useRole()
+  const { data } = useSession()
+  const { role: contextRole } = useRole()
+  const role = (data?.user?.role as Role | undefined) ?? contextRole
   const allowed = adminRolesFor(pathname)
 
   if (canAccess(role, allowed)) return children
@@ -25,7 +29,6 @@ export function RoleGate({ children }: { children: React.ReactNode }) {
       <p className="text-brun-soft">
         Cette section est réservée aux profils : {allowed.map((r) => roleLabels[r]).join(", ")}. Votre rôle actuel est « {roleLabels[role]} ».
       </p>
-      <p className="text-sm text-muted-foreground">Utilisez le sélecteur de rôle en haut de page pour prévisualiser une autre vue.</p>
       <Button asChild className="rounded-full">
         <Link href="/espace">Retour à mon espace</Link>
       </Button>

@@ -25,8 +25,8 @@ export function profileCompletion(
     {
       key: "origines",
       label: "Origines",
-      hint: "Quartier, famille et lien avec Bapa",
-      done: !!(member.quartierId && member.family && member.link),
+      hint: "Quartier d'origine et lien avec Bapa",
+      done: !!(member.quartierId && member.link),
       href: welcome("origines"),
     },
     {
@@ -44,7 +44,14 @@ export function profileCompletion(
       href: welcome("residence"),
     },
     { key: "profession", label: "Profession", hint: "Votre métier ou activité", done: !!member.profession, href: welcome("residence") },
-    { key: "photo", label: "Photo de profil", hint: "Aide les membres à vous reconnaître", done: !!member.avatar, href: "/espace/profil" },
+    {
+      key: "photo",
+      label: "Photo de profil",
+      hint: "Issue de votre compte Google si connecté ainsi",
+      done: !!member.avatar,
+      href: "/espace/profil",
+      optional: true,
+    },
     { key: "bio", label: "Présentation", hint: "Quelques mots sur vous", done: !!member.bio, href: "/espace/profil" },
     {
       key: "associations",

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, CalendarDays, FolderKanban, Hourglass, Lock, MessagesSquare, Plus, Store, Users } from "lucide-react"
+import { ArrowRight, CalendarDays, FolderKanban, Hourglass, Lock, MessageCircle, Plus, Store, Users } from "lucide-react"
 
 import { BapaMotif } from "@/components/brand/pattern"
 import { CtaLink } from "@/components/brand/cta"
@@ -14,7 +14,7 @@ import { SectionCard } from "./section-card"
 
 const unlocked = [
   { icon: Users, label: "Annuaire des membres et associations" },
-  { icon: MessagesSquare, label: "Forum et messagerie" },
+  { icon: MessageCircle, label: "Messagerie" },
   { icon: CalendarDays, label: "Inscription aux événements" },
   { icon: FolderKanban, label: "Projets du village et contributions" },
 ]

@@ -38,6 +38,9 @@ type Values = z.infer<typeof schema>
 export function RegisterForm() {
   const router = useRouter()
   const association = useSearchParams().get("association")
+  const oauthCallbackUrl = association
+    ? `/espace/bienvenue?association=${encodeURIComponent(association)}`
+    : "/espace/bienvenue"
   const [show, setShow] = useState(false)
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -48,20 +51,41 @@ export function RegisterForm() {
   const method = watch("method")
 
   const onSubmit = async (v: Values) => {
-    await new Promise((r) => setTimeout(r, 700))
-    toast.success("Compte créé", { description: "Il ne reste qu'à vérifier vos coordonnées." })
-    const welcome = `/espace/bienvenue${association ? `?association=${encodeURIComponent(association)}` : ""}`
-    if (v.method === "email") {
-      router.push(`/en-attente?email=${encodeURIComponent(v.email)}${association ? `&association=${encodeURIComponent(association)}` : ""}`)
-    } else {
-      router.push(`/verification?cible=${encodeURIComponent(`${v.dialCode} ${v.phone}`)}&canal=sms&suite=${encodeURIComponent(welcome)}`)
+    if (v.method === "phone") {
+      toast.message("Inscription par téléphone bientôt disponible", {
+        description: "Pour cette version, inscrivez-vous avec votre adresse email.",
+      })
+      return
     }
+
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: v.firstName,
+        lastName: v.lastName,
+        email: v.email,
+        phone: v.phone ? `${v.dialCode} ${v.phone}` : undefined,
+        password: v.password,
+        associationSlug: association || undefined,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      toast.error(data.error || "Impossible de créer le compte")
+      return
+    }
+
+    toast.success("Compte créé", {
+      description: "Un email et un message WhatsApp confirment votre inscription. Un administrateur la validera sous peu.",
+    })
+    router.push(`/en-attente?email=${encodeURIComponent(v.email)}${association ? `&association=${encodeURIComponent(association)}` : ""}`)
   }
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
       <FieldGroup className="gap-5">
-        <SocialButtons mode="register" />
+        <SocialButtons mode="register" callbackUrl={oauthCallbackUrl} />
         <OrSeparator label="ou avec" />
 
         <div className="grid gap-5 sm:grid-cols-2">

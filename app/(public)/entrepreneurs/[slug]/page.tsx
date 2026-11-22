@@ -29,7 +29,7 @@ export default async function EntreprisePublicPage({ params }: { params: Promise
   return (
     <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12">
       <Link href="/entrepreneurs" className="mb-6 flex w-fit items-center gap-2 text-sm text-terre hover:underline">
-        <ArrowLeft className="size-4" /> Entrepreneurs Bapa
+        <ArrowLeft className="size-4" /> Annuaire
       </Link>
 
       {business.visibility === "MEMBERS" ? (

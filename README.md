@@ -80,13 +80,26 @@ python3 scripts/associations-from-xlsx.py chemin/vers/Associations_BAPA_par_pays
 
 Gardez l'ordre des lignes : les identifiants (`as1`… `as78`) suivent le numéro de ligne, et les données de démonstration (membres, événements, documents) y font référence.
 
+### Auth & base (phase livrée)
+
+- **PostgreSQL** + Prisma (`DATABASE_URL=postgresql://shakemill@localhost:5432/communaute_bapa`)
+- **Auth.js** : email + mot de passe, sessions JWT, validation `SUPER_ADMIN`
+- **Notifications** : SMTP `bapa-officiel.com:465` + WhatsApp Cloud API (Meta) — renseigner `SMTP_PASS` et `WHATSAPP_*` dans `.env`
+- **Import Excel** : onglet Membres d’une association (responsable) — modèle téléchargeable
+- Compte seed : `admin@bapa-officiel.com` / `AdminBapa2026!`
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
 ### Reste à intégrer
 
-- **Authentification** : Auth.js (NextAuth) avec adaptateur Prisma pour email + mot de passe, Google, Facebook et lien magique. L'OTP SMS / WhatsApp passe par un fournisseur au choix. Les modèles `User`, `Account`, `Session` et `VerificationToken` sont prévus.
-- **Paiements** : APIs Orange Money et MTN MoMo, un prestataire carte (Stripe, CinetPay…) et PayPal. Les webhooks mettent à jour `Contribution.status`.
-- **Notifications** : SMTP pour les emails, passerelle SMS et WhatsApp Business.
-- **Messagerie temps réel** : polling, SSE ou WebSocket (Socket.IO, Pusher…).
-- **Stockage des fichiers** : documents et avatars, sur le disque du VPS ou un stockage S3 compatible.
+- OAuth Google / Facebook, lien magique, OTP téléphone
+- **Paiements** : APIs Orange Money et MTN MoMo, prestataire carte, PayPal
+- **Messagerie temps réel** : polling, SSE ou WebSocket
+- **Stockage des fichiers** : documents et avatars
+- Migration complète des modules mock restants (événements, contributions, chat…) vers Postgres
 
 ## Déploiement sur le VPS Contabo
 

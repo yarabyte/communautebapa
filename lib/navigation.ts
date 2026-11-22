@@ -10,19 +10,18 @@ import {
   HandCoins,
   Home,
   MessageCircle,
-  MessagesSquare,
   Newspaper,
   Settings,
-  ShieldAlert,
   UserCircle,
   Users,
   UsersRound,
+  Wrench,
   type LucideIcon,
 } from "lucide-react"
 
 import type { Role } from "./types"
 
-export type NavItem = { href: string; label: string; icon: LucideIcon; roles?: Role[]; badgeKey?: "pending" | "messages" | "reported" | "businesses" }
+export type NavItem = { href: string; label: string; icon: LucideIcon; roles?: Role[]; badgeKey?: "pending" | "messages" | "businesses" }
 export type NavGroup = { label: string; items: NavItem[] }
 
 export const memberNav: NavGroup[] = [
@@ -38,11 +37,17 @@ export const memberNav: NavGroup[] = [
     label: "Communauté",
     items: [
       { href: "/espace/associations", label: "Associations", icon: UsersRound },
-      { href: "/espace/annuaire", label: "Annuaire", icon: Users },
       { href: "/espace/actualites", label: "Actualités", icon: Newspaper },
       { href: "/espace/evenements", label: "Événements", icon: CalendarDays },
-      { href: "/espace/forum", label: "Forum", icon: MessagesSquare },
       { href: "/espace/documents", label: "Documents", icon: FileText },
+    ],
+  },
+  {
+    label: "Annuaire",
+    items: [
+      { href: "/espace/annuaire", label: "Annuaire des membres", icon: Users },
+      { href: "/espace/entrepreneurs", label: "Annuaire des entrepreneurs", icon: Store },
+      { href: "/espace/metiers", label: "Annuaire des métiers et expertise", icon: Wrench },
     ],
   },
   {
@@ -55,7 +60,6 @@ export const memberNav: NavGroup[] = [
   {
     label: "Économie",
     items: [
-      { href: "/espace/entrepreneurs", label: "Entrepreneurs Bapa", icon: Store },
       { href: "/espace/emplois", label: "Offres d'emploi", icon: BriefcaseBusiness },
       { href: "/espace/mes-entreprises", label: "Mes entreprises", icon: Building2 },
     ],
@@ -78,7 +82,7 @@ export const adminNav: NavGroup[] = [
     label: "Administration",
     items: [
       { href: "/admin", label: "Vue d'ensemble", icon: BarChart3, roles: ALL_ADMINS },
-      { href: "/admin/inscriptions", label: "Inscriptions", icon: BadgeCheck, roles: CONTENT_ADMINS, badgeKey: "pending" },
+      { href: "/admin/inscriptions", label: "Inscriptions", icon: BadgeCheck, roles: ["SUPER_ADMIN"], badgeKey: "pending" },
       { href: "/admin/membres", label: "Membres", icon: Users, roles: ["SUPER_ADMIN"] },
       { href: "/admin/associations", label: "Associations", icon: UsersRound, roles: CONTENT_ADMINS },
       { href: "/admin/evenements", label: "Événements", icon: CalendarDays, roles: CONTENT_ADMINS },
@@ -87,7 +91,6 @@ export const adminNav: NavGroup[] = [
       { href: "/admin/contributions", label: "Contributions", icon: HandCoins, roles: FINANCE_ADMINS },
       { href: "/admin/documents", label: "Documents", icon: FileText, roles: CONTENT_ADMINS },
       { href: "/admin/entrepreneurs", label: "Entrepreneurs", icon: Store, roles: CONTENT_ADMINS, badgeKey: "businesses" },
-      { href: "/admin/forum", label: "Modération", icon: ShieldAlert, roles: CONTENT_ADMINS, badgeKey: "reported" },
       { href: "/admin/parametres", label: "Paramètres", icon: Settings, roles: ["SUPER_ADMIN"] },
     ],
   },

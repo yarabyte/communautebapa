@@ -8,8 +8,11 @@ const columns = [
     title: "Communauté",
     links: [
       { href: "/a-propos", label: "La communauté et sa charte" },
+      { href: "/a-propos/missions", label: "Missions des communautés" },
+      { href: "/a-propos/organisation", label: "Organisation Cameroun et diaspora" },
+      { href: "/annuaire", label: "Annuaire des membres" },
       { href: "/associations", label: "Associations" },
-      { href: "/entrepreneurs", label: "Entrepreneurs Bapa" },
+      { href: "/entrepreneurs", label: "Annuaire des métiers et expertise" },
       { href: "/evenements", label: "Événements" },
     ],
   },

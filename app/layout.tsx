@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 import { Cinzel, Work_Sans } from "next/font/google"
 
+import { SessionRoleProvider } from "@/components/providers/session-role-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { RoleProvider } from "@/lib/role-context"
 import "./globals.css"
 
 const cinzel = Cinzel({
@@ -37,9 +37,9 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${cinzel.variable} ${workSans.variable}`}>
       <body>
-        <RoleProvider>
+        <SessionRoleProvider>
           <TooltipProvider>{children}</TooltipProvider>
-        </RoleProvider>
+        </SessionRoleProvider>
         <Toaster position="top-center" theme="light" />
       </body>
     </html>

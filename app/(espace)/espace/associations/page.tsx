@@ -1,9 +1,8 @@
 import type { Metadata } from "next"
-import Image from "next/image"
 import Link from "next/link"
 import { ChevronRight, MapPin, Users } from "lucide-react"
 
-import { AssociationBrowser } from "@/components/shared/association-browser"
+import { AssociationBrowser, AssociationMonogram } from "@/components/shared/association-browser"
 import { PageHeader } from "@/components/espace/page-header"
 import { Badge } from "@/components/ui/badge"
 import { associationPlace } from "@/lib/association-utils"
@@ -32,9 +31,7 @@ export default async function EspaceAssociationsPage() {
                 href={`/espace/associations/${association.slug}`}
                 className="group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:border-terre/40"
               >
-                <span className="relative size-16 shrink-0 overflow-hidden rounded-xl bg-muted">
-                  <Image src={association.cover} alt="" fill sizes="64px" className="object-cover" />
-                </span>
+                <AssociationMonogram association={association} className="size-12 rounded-xl text-sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-brun group-hover:text-terre">{association.name}</p>
                   <p className="flex items-center gap-2 text-xs text-muted-foreground">

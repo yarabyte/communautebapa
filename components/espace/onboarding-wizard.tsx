@@ -4,14 +4,13 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, ArrowRight, Briefcase, Camera, Check, Loader2, Store } from "lucide-react"
+import { ArrowLeft, ArrowRight, Briefcase, Check, Loader2, Store } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
 import { AssociationPicker } from "@/components/auth/association-picker"
 import { Stepper } from "@/components/auth/stepper"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -35,9 +34,7 @@ const COUNTRIES = ["Cameroun", "France", "Belgique", "Suisse", "Allemagne", "Ita
 
 const schema = z.object({
   quartierId: z.string(),
-  family: z.string(),
   link: z.string(),
-  sponsor: z.string(),
   gender: z.string(),
   birthYear: z.union([z.literal(""), z.string().regex(/^(19|20)\d{2}$/, "Année invalide")]),
   country: z.string(),
@@ -62,16 +59,13 @@ type Props = {
 export function OnboardingWizard({ member, quartiers, associations, memberAssociationIds, initialStep, preselectedSlug }: Props) {
   const router = useRouter()
   const [step, setStep] = useState(Math.max(0, ONBOARDING_STEPS.indexOf(initialStep ?? "origines")))
-  const [photo, setPhoto] = useState(member.avatar)
   const preselected = associations.find((a) => a.slug === preselectedSlug)
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
       quartierId: member.quartierId ?? "",
-      family: member.family ?? "",
       link: member.link ?? "",
-      sponsor: member.sponsorName ?? "",
       gender: member.gender ?? "",
       birthYear: member.birthYear ? String(member.birthYear) : "",
       country: member.country ?? "",
@@ -91,13 +85,50 @@ export function OnboardingWizard({ member, quartiers, associations, memberAssoci
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const finish = () => {
-    toast.success("Profil enregistré", { description: "Vous pourrez le compléter à tout moment depuis « Mon profil »." })
-    router.push("/espace")
+  const persist = async (done: boolean) => {
+    const v = form.getValues()
+    const res = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        quartierId: v.quartierId || null,
+        link: (v.link as BapaLink) || null,
+        gender: v.gender === "FEMME" || v.gender === "HOMME" ? v.gender : null,
+        birthYear: v.birthYear ? Number(v.birthYear) : null,
+        country: v.country || null,
+        city: v.city || null,
+        profession: v.profession || null,
+        bio: v.bio || null,
+        showInDirectory: v.showInDirectory,
+        associationIds: v.associationIds,
+        ...(done ? { onboardedAt: true } : {}),
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      toast.error(data.error || "Enregistrement impossible")
+      return false
+    }
+    return true
   }
 
-  const save = form.handleSubmit(async () => {
-    await new Promise((r) => setTimeout(r, 400))
+  const finish = async () => {
+    if (!(await persist(true))) return
+    toast.success("Profil enregistré", { description: "Vous pourrez le compléter à tout moment depuis « Mon profil »." })
+    router.push("/espace")
+    router.refresh()
+  }
+
+  const save = form.handleSubmit(async (v) => {
+    if (current === "origines" && (!v.quartierId || !v.link)) {
+      toast.error("Indiquez votre quartier d'origine et votre lien avec Bapa")
+      return
+    }
+    if (current === "associations" && v.associationIds.length === 0) {
+      toast.error("Choisissez au moins une association")
+      return
+    }
+    if (!(await persist(false))) return
     toast.success("Informations enregistrées")
     goTo(step + 1)
   })
@@ -117,33 +148,27 @@ export function OnboardingWizard({ member, quartiers, associations, memberAssoci
         {current === "origines" && (
           <FieldGroup className="gap-5">
             <StepTitle title="Vos origines" text="Ces informations aident le responsable à valider votre demande et vous relient aux membres de votre quartier." />
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Field>
-                <FieldLabel>Quartier d&apos;origine</FieldLabel>
-                <Controller
-                  control={control}
-                  name="quartierId"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="h-11! w-full bg-background">
-                        <SelectValue placeholder="Choisir…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {quartiers.map((q) => (
-                          <SelectItem key={q.id} value={q.id}>
-                            {q.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="family">Famille / lignage</FieldLabel>
-                <Input id="family" placeholder="Famille Kamga Tchoua" className="h-11 bg-background" {...register("family")} />
-              </Field>
-            </div>
+            <Field>
+              <FieldLabel>Quartier d&apos;origine</FieldLabel>
+              <Controller
+                control={control}
+                name="quartierId"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="h-11! w-full bg-background">
+                      <SelectValue placeholder="Choisir…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {quartiers.map((q) => (
+                        <SelectItem key={q.id} value={q.id}>
+                          {q.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </Field>
             <Field>
               <FieldLabel>Votre lien avec Bapa</FieldLabel>
               <Controller
@@ -164,44 +189,12 @@ export function OnboardingWizard({ member, quartiers, associations, memberAssoci
                 )}
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="sponsor">Parrain ou personne de référence</FieldLabel>
-              <Input id="sponsor" placeholder="Nom d'un membre qui peut vous recommander" className="h-11 bg-background" {...register("sponsor")} />
-              <FieldDescription>Facultatif, mais accélère la validation de votre demande.</FieldDescription>
-            </Field>
           </FieldGroup>
         )}
 
         {current === "residence" && (
           <FieldGroup className="gap-5">
             <StepTitle title="Vous" text="Pour que les membres de votre ville et de votre profession puissent vous retrouver." />
-            <div className="flex items-center gap-5">
-              <Avatar className="size-20 border-2 border-or/40">
-                {photo && <AvatarImage src={photo} alt="" className="object-cover" />}
-                <AvatarFallback className="bg-accent font-heading text-xl text-terre">
-                  {member.firstName[0]}
-                  {member.lastName[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="photo" className="w-fit cursor-pointer">
-                  <span className="inline-flex h-9 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm hover:bg-secondary">
-                    <Camera className="size-4" /> {photo ? "Changer la photo" : "Ajouter une photo"}
-                  </span>
-                </Label>
-                <input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) setPhoto(URL.createObjectURL(f))
-                  }}
-                />
-                <p className="text-xs text-muted-foreground">Aide les membres à vous reconnaître.</p>
-              </div>
-            </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <Field>
                 <FieldLabel>Genre</FieldLabel>
@@ -269,7 +262,7 @@ export function OnboardingWizard({ member, quartiers, associations, memberAssoci
                 <Field orientation="horizontal" className="justify-between rounded-2xl border border-border bg-background p-4">
                   <div>
                     <FieldLabel htmlFor="showInDirectory">Apparaître dans l&apos;annuaire des membres</FieldLabel>
-                    <FieldDescription>Visible uniquement par les membres validés.</FieldDescription>
+                    <FieldDescription>Visible sur le site public et dans l&apos;espace membre.</FieldDescription>
                   </div>
                   <Switch id="showInDirectory" checked={field.value} onCheckedChange={field.onChange} />
                 </Field>

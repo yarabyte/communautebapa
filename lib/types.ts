@@ -3,7 +3,7 @@
 export type Role = "MEMBER" | "ASSOCIATION_ADMIN" | "TREASURER" | "SUPER_ADMIN"
 export type MemberStatus = "PENDING" | "ACTIVE" | "SUSPENDED" | "REJECTED"
 export type Gender = "FEMME" | "HOMME"
-export type AuthProvider = "EMAIL" | "PHONE" | "GOOGLE" | "FACEBOOK" | "MAGIC_LINK"
+export type AuthProvider = "EMAIL" | "PHONE" | "GOOGLE" | "APPLE" | "FACEBOOK" | "MAGIC_LINK"
 
 export type Quartier = { id: string; name: string }
 export type BapaLink = "NAISSANCE" | "FILIATION" | "ALLIANCE" | "AMI"
@@ -163,31 +163,6 @@ export type BapaDocument = {
   associationId?: string
   uploadedAt: string
   uploadedById: string
-}
-
-export type ForumCategory = "GENERAL" | "VILLAGE" | "PROJETS" | "CULTURE" | "ENTRAIDE"
-
-export type ForumThread = {
-  id: string
-  title: string
-  content: string
-  category: ForumCategory
-  authorId: string
-  associationId?: string
-  createdAt: string
-  lastReplyAt: string
-  views: number
-  pinned?: boolean
-  locked?: boolean
-  reported?: boolean
-}
-
-export type ForumReply = {
-  id: string
-  threadId: string
-  authorId: string
-  content: string
-  createdAt: string
 }
 
 export type Conversation = {

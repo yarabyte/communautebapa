@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -42,16 +42,19 @@ enum AuthProvider {
   EMAIL
   PHONE
   GOOGLE
+  APPLE
   FACEBOOK
   MAGIC_LINK
 }
 
 model User {
   id            String       @id @default(cuid())
+  name          String?
   email         String?      @unique
   phone         String?      @unique
-  passwordHash  String?
   emailVerified DateTime?
+  image         String?
+  passwordHash  String?
   phoneVerified DateTime?
   role          Role         @default(MEMBER)
   status        MemberStatus @default(PENDING)
@@ -68,8 +71,6 @@ model User {
   contributions    Contribution[]            @relation("ContributionMember")
   recordedPayments Contribution[]            @relation("ContributionRecorder")
   documents        Document[]
-  threads          ForumThread[]
-  replies          ForumReply[]
   participations   ConversationParticipant[]
   messages         Message[]
   reviewedBy       RegistrationReview[]      @relation("ReviewedUser")
@@ -81,11 +82,16 @@ model User {
 model Account {
   id                String  @id @default(cuid())
   userId            String
+  type              String
   provider          String
   providerAccountId String
-  accessToken       String? @db.Text
-  refreshToken      String? @db.Text
-  expiresAt         Int?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
@@ -211,7 +217,6 @@ model Association {
   posts         Post[]
   projects      Project[]
   documents     Document[]
-  threads       ForumThread[]
   conversations Conversation[]
 
   @@index([country, city])
@@ -287,7 +292,7 @@ model Post {
   slug          String       @unique
   title         String
   excerpt       String
-  content       String       @db.LongText
+  content       String       @db.Text
   imageUrl      String?
   category      PostCategory
   pinned        Boolean      @default(false)
@@ -343,7 +348,7 @@ model Project {
   slug          String          @unique
   title         String
   summary       String          @db.Text
-  description   String          @db.LongText
+  description   String          @db.Text
   imageUrl      String?
   category      ProjectCategory
   status        ProjectStatus   @default(A_VENIR)
@@ -392,7 +397,7 @@ model Contribution {
   @@index([recordedById])
 }
 
-// ---------- Documents, forum, messagerie ----------
+// ---------- Documents, messagerie ----------
 
 enum DocumentType {
   PV
@@ -417,48 +422,6 @@ model Document {
 
   @@index([associationId])
   @@index([uploadedById])
-}
-
-enum ForumCategory {
-  GENERAL
-  VILLAGE
-  PROJETS
-  CULTURE
-  ENTRAIDE
-}
-
-model ForumThread {
-  id            String        @id @default(cuid())
-  title         String
-  content       String        @db.Text
-  category      ForumCategory
-  pinned        Boolean       @default(false)
-  locked        Boolean       @default(false)
-  reported      Boolean       @default(false)
-  views         Int           @default(0)
-  authorId      String
-  associationId String?
-  createdAt     DateTime      @default(now())
-  lastReplyAt   DateTime      @default(now())
-  author        User          @relation(fields: [authorId], references: [id])
-  association   Association?  @relation(fields: [associationId], references: [id])
-  replies       ForumReply[]
-
-  @@index([authorId])
-  @@index([associationId])
-}
-
-model ForumReply {
-  id        String      @id @default(cuid())
-  threadId  String
-  authorId  String
-  content   String      @db.Text
-  createdAt DateTime    @default(now())
-  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  author    User        @relation(fields: [authorId], references: [id])
-
-  @@index([threadId])
-  @@index([authorId])
 }
 
 enum ConversationType {

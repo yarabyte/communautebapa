@@ -25,7 +25,6 @@ const notifRows = [
   { key: "events", label: "Événements et rappels" },
   { key: "news", label: "Annonces de la chefferie" },
   { key: "messages", label: "Nouveaux messages" },
-  { key: "forum", label: "Réponses à mes sujets" },
   { key: "contrib", label: "Reçus de contribution" },
 ]
 const channels = ["Email", "SMS", "WhatsApp"]

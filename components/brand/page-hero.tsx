@@ -81,7 +81,7 @@ export function PageHero({
           <dl className="mt-12 grid max-w-4xl grid-cols-2 overflow-hidden rounded-2xl border border-creme-light/20 bg-nuit/35 backdrop-blur-md lg:grid-cols-4">
             {stats.map((s, i) => (
               <div
-                key={s.title}
+                key={`${s.text}-${i}`}
                 className={cn(
                   "flex flex-col gap-1.5 p-4 sm:p-5",
                   i > 0 && "lg:border-l lg:border-creme-light/15",

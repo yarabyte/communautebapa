@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { BapaMotif } from "@/components/brand/pattern"
 import { monogram } from "@/lib/association-utils"
 import type { BusinessWithMeta } from "@/lib/data/businesses"
 import type { Business } from "@/lib/types"
@@ -76,14 +77,17 @@ export function BusinessLogo({ business, className }: { business: Pick<Business,
 
 export function BusinessCard({ business, href }: { business: BusinessWithMeta; href: string }) {
   return (
-    <article className="group relative flex flex-col gap-4 rounded-3xl border border-border bg-card p-5 transition-shadow hover:shadow-[0_16px_32px_rgba(57,37,23,0.1)]">
-      <div className="flex items-start gap-4">
-        <BusinessLogo business={business} />
+    <article className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-or/25 bg-card p-5 shadow-[0_12px_28px_-24px_rgba(57,37,23,0.4)] transition-shadow hover:shadow-[0_18px_36px_-22px_rgba(57,37,23,0.45)]">
+      <BapaMotif tone="gold" fade="corner" className="opacity-[0.16]" />
+      <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-or/55 to-transparent" />
+      <div aria-hidden className="pointer-events-none absolute inset-2 rounded-[1.35rem] border border-or/15" />
+
+      <div className="relative flex items-start gap-4">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-xs text-or-dark">
             <SectorIcon icon={business.sectorIcon} className="size-3.5" /> {business.sectorName}
           </p>
-          <h3 className="mt-0.5 leading-snug font-medium text-brun">
+          <h3 className="mt-0.5 font-heading text-[17px] leading-snug tracking-wide text-brun">
             <Link href={href} className="after:absolute after:inset-0 group-hover:text-terre">
               {business.name}
             </Link>
@@ -91,19 +95,20 @@ export function BusinessCard({ business, href }: { business: BusinessWithMeta; h
           <p className="text-xs text-muted-foreground">par {business.ownerName}</p>
         </div>
         {business.visibility === "MEMBERS" && (
-          <span title="Réservée aux membres" className="text-muted-foreground">
+          <span title="Réservée aux membres" className="relative text-muted-foreground">
             <Lock className="size-4" />
           </span>
         )}
       </div>
-      <p className="line-clamp-2 text-sm text-brun-soft">{business.description}</p>
-      <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      <p className="relative line-clamp-2 text-sm text-brun-soft">{business.description}</p>
+      <div className="relative mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-or/20 pt-3 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <MapPin className="size-3.5 text-or" /> {business.city}, {business.country}
         </span>
         {business.recommendationsCount > 0 && (
           <span className="flex items-center gap-1.5">
-            <ThumbsUp className="size-3.5 text-or" /> {business.recommendationsCount} recommandation{business.recommendationsCount > 1 ? "s" : ""}
+            <ThumbsUp className="size-3.5 text-or" /> {business.recommendationsCount} recommandation
+            {business.recommendationsCount > 1 ? "s" : ""}
           </span>
         )}
         {business.openJobs > 0 && (

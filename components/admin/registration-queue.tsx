@@ -26,9 +26,26 @@ export function RegistrationQueue({ registrations }: { registrations: Registrati
 
   const remove = (id: string) => setItems((list) => list.filter((m) => m.id !== id))
 
-  const approve = (m: Registration) => {
+  const review = async (m: Registration, decision: "ACTIVE" | "REJECTED", comment?: string) => {
+    const res = await fetch(`/api/admin/registrations/${m.id}/review`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision, comment }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      toast.error(data.error || "Action impossible")
+      return false
+    }
     remove(m.id)
-    toast.success(`${m.firstName} ${m.lastName} a été accepté(e)`, { description: "Un email et un SMS de bienvenue ont été envoyés." })
+    return true
+  }
+
+  const approve = async (m: Registration) => {
+    if (!(await review(m, "ACTIVE"))) return
+    toast.success(`${m.firstName} ${m.lastName} a été accepté(e)`, {
+      description: "Un email et un message WhatsApp de bienvenue ont été envoyés.",
+    })
   }
 
   const askMore = (m: Registration) =>
@@ -36,9 +53,9 @@ export function RegistrationQueue({ registrations }: { registrations: Registrati
       description: m.completion.missing.length ? `À compléter : ${m.completion.missing.map((i) => i.label.toLowerCase()).join(", ")}.` : undefined,
     })
 
-  const reject = () => {
+  const reject = async () => {
     if (!rejecting) return
-    remove(rejecting.id)
+    if (!(await review(rejecting, "REJECTED", reason))) return
     toast(`Demande de ${rejecting.firstName} ${rejecting.lastName} refusée`, { description: reason ? `Motif : ${reason}` : undefined })
     setRejecting(undefined)
     setReason("")

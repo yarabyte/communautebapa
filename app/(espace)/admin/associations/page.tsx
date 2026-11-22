@@ -2,17 +2,20 @@ import type { Metadata } from "next"
 
 import { AssociationsAdminTable } from "@/components/admin/content-tables"
 import { PageHeader } from "@/components/espace/page-header"
-import { getAssociations } from "@/lib/data/associations"
-import { fullName, getMembers, memberById } from "@/lib/data/members"
+import { getAssociationMembers, getAssociations } from "@/lib/data/associations"
+import { fullName, getMembers } from "@/lib/data/members"
 
 export const metadata: Metadata = { title: "Associations" }
 
 export default async function AdminAssociationsPage() {
   const [associations, members] = await Promise.all([getAssociations(), getMembers({ status: "ACTIVE" })])
-  const rows = associations.map((a) => {
-    const president = a.presidentId ? memberById(a.presidentId) : undefined
-    return { ...a, presidentName: president ? fullName(president) : "—" }
-  })
+  const rows = await Promise.all(
+    associations.map(async (a) => {
+      const assocMembers = await getAssociationMembers(a.id)
+      const president = assocMembers.find((x) => x.membership.role === "RESPONSABLE")?.member
+      return { ...a, presidentName: president ? fullName(president) : "—" }
+    })
+  )
 
   return (
     <div className="flex flex-col gap-6">

@@ -154,6 +154,33 @@ export const associations: Association[] = associationRows.map(([zone, country, 
   }
 })
 
+const activeMembers = members.filter((m) => m.status === "ACTIVE" || m.status === "SUSPENDED")
+const pickCursor = new Map<string, number>()
+
+function pickMember(pool: typeof activeMembers, key: string) {
+  if (pool.length === 0) return undefined
+  const index = pickCursor.get(key) ?? 0
+  pickCursor.set(key, index + 1)
+  return pool[index % pool.length]
+}
+
+for (const association of associations) {
+  if (association.presidentId) continue
+  const inCity = activeMembers.filter((m) => association.city && m.city === association.city)
+  const inCountry = activeMembers.filter((m) => m.country === association.country)
+  const chosen =
+    pickMember(inCity, `city:${association.city}`) ??
+    pickMember(inCountry, `country:${association.country}`) ??
+    pickMember(activeMembers, "all")
+  if (chosen) association.presidentId = chosen.id
+}
+
+export function presidentName(associationId: string) {
+  const memberId = associations.find((a) => a.id === associationId)?.presidentId
+  const member = activeMembers.find((m) => m.id === memberId) ?? members.find((m) => m.id === memberId)
+  return member ? `${member.firstName} ${member.lastName}` : undefined
+}
+
 /* ---------- Adhésions de démonstration ---------- */
 
 const diasporaByCountry: Record<string, string> = {
@@ -165,7 +192,7 @@ const diasporaByCountry: Record<string, string> = {
 }
 
 /** Adhésions complémentaires utilisées par les contenus de démonstration. */
-const extraMemberships: Record<string, string[]> = { m8: ["as17"], m13: ["as17"], m19: ["as17"] }
+const extraMemberships: Record<string, string[]> = { m1: ["as17"], m8: ["as17"], m13: ["as17"], m19: ["as17"] }
 
 function associationsFor(m: (typeof members)[number]): string[] {
   const ids = new Set<string>(extraMemberships[m.id])

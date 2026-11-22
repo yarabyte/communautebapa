@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { BadgeCheck, HandCoins, ShieldAlert, Users } from "lucide-react"
+import { BadgeCheck, FolderKanban, HandCoins, Users } from "lucide-react"
 
 import { MethodChart, MonthlyChart } from "@/components/admin/dashboard-charts"
 import { MemberAvatar } from "@/components/espace/member-avatar"
@@ -9,7 +9,6 @@ import { SectionCard } from "@/components/espace/section-card"
 import { StatCard } from "@/components/espace/stat-card"
 import { PaymentMethodIcon } from "@/components/shared/payment-method-icon"
 import { ProjectProgress } from "@/components/shared/project-card"
-import { getForumThreads } from "@/lib/data/community"
 import { getMembers, getPendingRegistrations, getQuartierName, memberById, memberPlace } from "@/lib/data/members"
 import { getContributionStats, getContributions, getProjects, projectById } from "@/lib/data/projects"
 import { formatMoney, fromNow } from "@/lib/format"
@@ -17,14 +16,14 @@ import { formatMoney, fromNow } from "@/lib/format"
 export const metadata: Metadata = { title: "Vue d'ensemble" }
 
 export default async function AdminDashboard() {
-  const [members, pending, stats, recent, projects, reported] = await Promise.all([
+  const [members, pending, stats, recent, projects] = await Promise.all([
     getMembers({ status: "ACTIVE" }),
     getPendingRegistrations(),
     getContributionStats(),
     getContributions(),
     getProjects(),
-    getForumThreads({ reported: true }),
   ])
+  const activeProjects = projects.filter((p) => p.status !== "TERMINE")
 
   return (
     <div className="flex flex-col gap-6">
@@ -34,7 +33,7 @@ export default async function AdminDashboard() {
         <StatCard icon={Users} label="Membres actifs" value={members.length} hint="+6 ce mois-ci" />
         <StatCard icon={BadgeCheck} label="Inscriptions à valider" value={pending.length} tone="or" hint={<Link href="/admin/inscriptions" className="text-terre hover:underline">Traiter les demandes</Link>} />
         <StatCard icon={HandCoins} label="Collecté (6 mois)" value={formatMoney(stats.totalXaf)} tone="olive" hint={`${stats.count} contributions · ${stats.pending} en attente`} />
-        <StatCard icon={ShieldAlert} label="Signalements" value={reported.length} tone="indigo" hint={<Link href="/admin/forum" className="text-terre hover:underline">Modérer le forum</Link>} />
+        <StatCard icon={FolderKanban} label="Projets en cours" value={activeProjects.length} tone="indigo" hint={<Link href="/admin/projets" className="text-terre hover:underline">Gérer les projets</Link>} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_1fr]">

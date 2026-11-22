@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Check, Eye, EyeOff, Lock, Mail, MapPin, Pencil, Phone, ShieldCheck, Star, Trash2, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -23,10 +24,12 @@ import { RowActions } from "./row-actions"
 const iconOptions = SECTOR_ICON_KEYS.map((k) => ({ value: k, label: k }))
 
 export function BusinessesAdmin({ businesses, sectors }: { businesses: BusinessWithMeta[]; sectors: BusinessSector[] }) {
+  const router = useRouter()
   const [statuses, setStatuses] = useState<Record<string, BusinessStatus>>({})
   const [featuredId, setFeaturedId] = useState(businesses.find((b) => b.featured)?.id)
   const [rejecting, setRejecting] = useState<BusinessWithMeta | null>(null)
   const [reason, setReason] = useState("")
+  const [busy, setBusy] = useState(false)
 
   const rows = useMemo(
     () => businesses.map((b) => ({ ...b, status: statuses[b.id] ?? b.status, featured: b.id === featuredId })),
@@ -34,28 +37,49 @@ export function BusinessesAdmin({ businesses, sectors }: { businesses: BusinessW
   )
   const queue = rows.filter((b) => b.status === "PENDING")
 
-  const setStatus = (id: string, status: BusinessStatus) => setStatuses((s) => ({ ...s, [id]: status }))
-
-  const approve = (b: BusinessWithMeta) => {
-    setStatus(b.id, "PUBLISHED")
-    toast.success(`${b.name} est publiée`, { description: `${b.ownerName} est prévenu par notification.` })
+  const patchBusiness = async (id: string, body: Record<string, unknown>) => {
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/admin/businesses/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || "Action impossible")
+        return false
+      }
+      router.refresh()
+      return true
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const confirmReject = () => {
+  const approve = async (b: BusinessWithMeta) => {
+    if (!(await patchBusiness(b.id, { status: "PUBLISHED" }))) return
+    setStatuses((s) => ({ ...s, [b.id]: "PUBLISHED" }))
+    toast.success(`${b.name} est publiée`)
+  }
+
+  const confirmReject = async () => {
     if (!rejecting || reason.trim().length < 10) return
-    setStatus(rejecting.id, "REJECTED")
-    toast.success("Fiche refusée", { description: "Le motif a été envoyé au membre, qui peut corriger et soumettre à nouveau." })
+    if (!(await patchBusiness(rejecting.id, { status: "REJECTED", reviewNote: reason.trim() }))) return
+    setStatuses((s) => ({ ...s, [rejecting.id]: "REJECTED" }))
+    toast.success("Fiche refusée", { description: "Le motif a été enregistré. Le membre peut corriger et soumettre à nouveau." })
     setRejecting(null)
     setReason("")
   }
 
-  const feature = (b: BusinessWithMeta) => {
+  const feature = async (b: BusinessWithMeta) => {
     if (b.status !== "PUBLISHED" || b.visibility !== "PUBLIC") {
       toast.error("Seule une fiche publiée et publique peut être mise en avant")
       return
     }
+    if (!(await patchBusiness(b.id, { featured: true }))) return
     setFeaturedId(b.id)
-    toast.success(`${b.name} devient l'entrepreneur du mois`, { description: "Affiché sur la page d'accueil du site." })
+    toast.success(`${b.name} devient l'entrepreneur du mois`)
   }
 
   const columns: DataTableColumn<BusinessWithMeta>[] = [
@@ -108,7 +132,19 @@ export function BusinessesAdmin({ businesses, sectors }: { businesses: BusinessW
               ...(b.status === "PENDING" ? [{ label: "Approuver", icon: Check, onSelect: () => approve(b) }] : []),
               { label: "Mettre en avant (entrepreneur du mois)", icon: Star, onSelect: () => feature(b) },
               ...(b.status === "PUBLISHED"
-                ? [{ label: "Dépublier", icon: EyeOff, separator: true, destructive: true, onSelect: () => (setStatus(b.id, "PENDING"), toast.success("Fiche dépubliée")) }]
+                ? [
+                    {
+                      label: "Dépublier",
+                      icon: EyeOff,
+                      separator: true,
+                      destructive: true,
+                      onSelect: async () => {
+                        if (!(await patchBusiness(b.id, { status: "PENDING" }))) return
+                        setStatuses((s) => ({ ...s, [b.id]: "PENDING" }))
+                        toast.success("Fiche dépubliée")
+                      },
+                    },
+                  ]
                 : [{ label: "Refuser", icon: X, separator: true, destructive: true, onSelect: () => setRejecting(b) }]),
             ]}
           />

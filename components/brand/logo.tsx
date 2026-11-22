@@ -14,7 +14,7 @@ type BapaLogoProps = {
 
 export function BapaLogo({
   href = "/",
-  title = "Communauté Bapa",
+  title = "Communautés Bapa",
   subtitle = "Ngouon' a Pa'a",
   tone = "dark",
   compact = false,

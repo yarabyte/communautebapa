@@ -22,9 +22,9 @@ export default async function AnnuairePage({ searchParams }: { searchParams: Sea
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Communauté"
+        eyebrow="Annuaire"
         title="Annuaire des membres"
-        description="Retrouvez les filles et fils de Bapa par quartier d'origine, pays de résidence ou profession. Visible uniquement par les membres validés."
+        description="Retrouvez les filles et fils de Bapa par quartier d'origine, pays de résidence ou profession. L'annuaire est aussi accessible au public."
       />
       <Suspense>
         <DirectoryFilters quartiers={quartiers} countries={countries} />

@@ -12,8 +12,8 @@ export default function InscriptionPage() {
     <div className="flex w-full max-w-lg flex-col gap-8">
       <AuthHeading
         tag="Adhésion"
-        title="Rejoindre la communauté"
-        description="Une minute suffit : vous compléterez votre profil ensuite. Un responsable valide chaque nouveau membre."
+        title="Rejoindre les communautés"
+        description="Une minute suffit : vous compléterez votre profil ensuite. Un responsable de votre communauté validera votre inscription."
       />
       <Suspense>
         <RegisterForm />

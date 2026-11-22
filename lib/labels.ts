@@ -10,7 +10,6 @@ import type {
   Currency,
   DocumentType,
   EventCategory,
-  ForumCategory,
   MemberStatus,
   MembershipRole,
   PaymentMethod,
@@ -31,6 +30,7 @@ export const providerLabels: Record<AuthProvider, string> = {
   EMAIL: "Email et mot de passe",
   PHONE: "Téléphone (OTP)",
   GOOGLE: "Google",
+  APPLE: "Apple",
   FACEBOOK: "Facebook",
   MAGIC_LINK: "Lien magique",
 }
@@ -128,14 +128,6 @@ export const documentTypeLabels: Record<DocumentType, string> = {
   RAPPORT: "Rapport",
   FINANCIER: "Financier",
   AUTRE: "Autre",
-}
-
-export const forumCategoryLabels: Record<ForumCategory, string> = {
-  GENERAL: "Général",
-  VILLAGE: "Vie du village",
-  PROJETS: "Projets",
-  CULTURE: "Culture et traditions",
-  ENTRAIDE: "Entraide",
 }
 
 export const businessStatusLabels: Record<BusinessStatus, string> = {

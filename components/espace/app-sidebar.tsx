@@ -2,8 +2,9 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { ChevronsUpDown, ExternalLink, Lock, LogOut, Settings, UserCircle } from "lucide-react"
+import { signOut } from "next-auth/react"
 
 import { BapaMotif } from "@/components/brand/pattern"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -24,11 +25,10 @@ import {
 import { MAIN_SITE_URL } from "@/lib/constants"
 import { roleLabels } from "@/lib/labels"
 import { adminNav, canAccess, isAllowedWhilePending, memberNav, type NavGroup } from "@/lib/navigation"
-import { useRole } from "@/lib/role-context"
 import type { Member } from "@/lib/types"
 import { MemberAvatar } from "./member-avatar"
 
-type Badges = { pending: number; messages: number; reported: number; businesses: number }
+type Badges = { pending: number; messages: number; businesses: number }
 
 function isActive(pathname: string, href: string) {
   if (href === "/espace" || href === "/admin") return pathname === href
@@ -37,7 +37,8 @@ function isActive(pathname: string, href: string) {
 
 export function AppSidebar({ member, badges, pendingAccount = false }: { member: Member; badges: Badges; pendingAccount?: boolean }) {
   const pathname = usePathname()
-  const { role } = useRole()
+  const router = useRouter()
+  const role = member.role
 
   const groups: NavGroup[] = [
     ...memberNav,
@@ -59,7 +60,7 @@ export function AppSidebar({ member, badges, pendingAccount = false }: { member:
                 </span>
                 <span className="flex flex-col gap-0.5 leading-none">
                   <small className="text-[9px] tracking-[0.28em] text-or uppercase">Ngouon&apos; a Pa&apos;a</small>
-                  <b className="font-heading text-[15px] font-semibold tracking-[0.06em] text-brun">Communauté Bapa</b>
+                  <b className="font-heading text-[15px] font-semibold tracking-[0.06em] text-brun">Communautés Bapa</b>
                 </span>
               </Link>
             </SidebarMenuButton>
@@ -153,10 +154,16 @@ export function AppSidebar({ member, badges, pendingAccount = false }: { member:
                   </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild variant="destructive">
-                  <Link href="/connexion">
-                    <LogOut /> Se déconnecter
-                  </Link>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => {
+                    void signOut({ redirect: false }).then(() => {
+                      router.push("/connexion")
+                      router.refresh()
+                    })
+                  }}
+                >
+                  <LogOut /> Se déconnecter
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -1,8 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Mail } from "lucide-react"
+import { Loader2, Mail } from "lucide-react"
+import { getProviders, signIn } from "next-auth/react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -18,33 +19,84 @@ function GoogleIcon() {
   )
 }
 
-function FacebookIcon() {
+function AppleIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="size-4">
-      <path
-        fill="#1877F2"
-        d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12Z"
-      />
+    <svg viewBox="0 0 24 24" aria-hidden className="size-4 fill-current">
+      <path d="M16.7 12.6c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.1.8-.7 0-1.7-.7-2.8-.7-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.7.7 2.8.7 1.9-1.1 2.6-2.1c.8-1.2 1.2-2.3 1.2-2.4-.1 0-2.2-.8-2.2-3.6ZM14.6 6.4c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.6.6-1.1 1.7-.9 2.6 1 .1 1.9-.5 2.5-1.2Z" />
     </svg>
   )
 }
 
-export function SocialButtons({ mode = "login" }: { mode?: "login" | "register" }) {
-  const router = useRouter()
+type SocialProvider = "google" | "apple"
 
-  const connect = (provider: string) => {
-    toast.success(`Connexion avec ${provider} (démonstration)`)
-    router.push(mode === "login" ? "/espace" : "/espace/bienvenue")
+const providerLabels: Record<SocialProvider, string> = {
+  google: "Google",
+  apple: "Apple",
+}
+
+export function SocialButtons({
+  mode = "login",
+  callbackUrl,
+}: {
+  mode?: "login" | "register"
+  callbackUrl?: string
+}) {
+  const [loading, setLoading] = useState<SocialProvider | null>(null)
+  const [enabled, setEnabled] = useState<Record<SocialProvider, boolean>>({ google: true, apple: true })
+
+  useEffect(() => {
+    getProviders()
+      .then((providers) => {
+        setEnabled({
+          google: Boolean(providers?.google),
+          apple: Boolean(providers?.apple),
+        })
+      })
+      .catch(() => {
+        setEnabled({ google: false, apple: false })
+      })
+  }, [])
+
+  const connect = async (provider: SocialProvider) => {
+    if (!enabled[provider]) {
+      toast.message(`${providerLabels[provider]} n'est pas encore configuré`, {
+        description: `Ajoutez AUTH_${provider.toUpperCase()}_ID et AUTH_${provider.toUpperCase()}_SECRET dans .env, puis redémarrez le serveur.`,
+      })
+      return
+    }
+
+    setLoading(provider)
+    try {
+      const target = callbackUrl ?? (mode === "register" ? "/espace/bienvenue" : "/espace")
+      await signIn(provider, { callbackUrl: target })
+    } catch {
+      toast.error(`Impossible de continuer avec ${providerLabels[provider]}`)
+      setLoading(null)
+    }
   }
 
   return (
     <div className="flex flex-col gap-2.5">
       <div className="grid gap-2.5 sm:grid-cols-2">
-        <Button type="button" variant="outline" className="h-11 rounded-full bg-card" onClick={() => connect("Google")}>
-          <GoogleIcon /> Google
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 rounded-full bg-card"
+          disabled={!!loading}
+          onClick={() => connect("google")}
+        >
+          {loading === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleIcon />}
+          Google
         </Button>
-        <Button type="button" variant="outline" className="h-11 rounded-full bg-card" onClick={() => connect("Facebook")}>
-          <FacebookIcon /> Facebook
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 rounded-full bg-card"
+          disabled={!!loading}
+          onClick={() => connect("apple")}
+        >
+          {loading === "apple" ? <Loader2 className="size-4 animate-spin" /> : <AppleIcon />}
+          Apple
         </Button>
       </div>
       {mode === "login" && (

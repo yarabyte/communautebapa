@@ -30,8 +30,10 @@ export async function getPost(slug: string) {
   return posts.find((p) => p.slug === slug) ?? null
 }
 
-export async function getDocuments(opts: { associationId?: string } = {}) {
+export async function getDocuments(opts: { associationId?: string; associationIds?: string[] } = {}) {
   return documents
+    .filter((d) => !!d.associationId)
     .filter((d) => !opts.associationId || d.associationId === opts.associationId)
+    .filter((d) => !opts.associationIds || opts.associationIds.includes(d.associationId!))
     .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt))
 }

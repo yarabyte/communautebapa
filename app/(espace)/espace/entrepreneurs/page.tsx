@@ -7,26 +7,25 @@ import { PageHeader } from "@/components/espace/page-header"
 import { BusinessCard } from "@/components/shared/business-card"
 import { BusinessFilterBar } from "@/components/shared/business-filter-bar"
 import { Button } from "@/components/ui/button"
-import { getBusinessCountries, getBusinesses, getBusinessStats, getSectors } from "@/lib/data/businesses"
+import { getBusinesses, getBusinessStats, getDirectoryOptions } from "@/lib/data/businesses"
 
-export const metadata: Metadata = { title: "Entrepreneurs Bapa" }
+export const metadata: Metadata = { title: "Annuaire des entrepreneurs" }
 
-type SearchParams = Promise<{ q?: string; secteur?: string; pays?: string }>
+type SearchParams = Promise<{ q?: string; entrepreneur?: string; entreprise?: string; metier?: string; expertise?: string }>
 
 export default async function EspaceEntrepreneursPage({ searchParams }: { searchParams: SearchParams }) {
-  const { q, secteur, pays } = await searchParams
-  const [list, sectors, countries, stats] = await Promise.all([
-    getBusinesses({ q, sectorId: secteur, country: pays }),
-    getSectors(),
-    getBusinessCountries(),
+  const { q, entrepreneur, entreprise, metier, expertise } = await searchParams
+  const [list, options, stats] = await Promise.all([
+    getBusinesses({ q, ownerId: entrepreneur, businessId: entreprise, metier, expertise }),
+    getDirectoryOptions(),
     getBusinessStats(),
   ])
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        eyebrow="Économie"
-        title="Entrepreneurs Bapa"
+        eyebrow="Annuaire"
+        title="Annuaire des entrepreneurs"
         description={`${stats.published} entreprises tenues par ${stats.entrepreneurs} membres. Faites travailler la communauté et recommandez celles que vous connaissez.`}
         actions={
           <>
@@ -44,7 +43,7 @@ export default async function EspaceEntrepreneursPage({ searchParams }: { search
         }
       />
       <Suspense>
-        <BusinessFilterBar sectors={sectors} countries={countries} />
+        <BusinessFilterBar options={options} variant="entrepreneurs" />
       </Suspense>
       <p className="text-sm text-muted-foreground">
         {list.length} entreprise{list.length > 1 ? "s" : ""} trouvée{list.length > 1 ? "s" : ""}

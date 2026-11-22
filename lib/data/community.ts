@@ -1,20 +1,4 @@
-import { conversations, forumReplies, forumThreads, messages } from "../mock/community"
-import type { ForumCategory } from "../types"
-
-export async function getForumThreads(opts: { associationId?: string; category?: ForumCategory; reported?: boolean } = {}) {
-  return forumThreads
-    .filter((t) => !opts.associationId || t.associationId === opts.associationId)
-    .filter((t) => !opts.category || t.category === opts.category)
-    .filter((t) => opts.reported === undefined || !!t.reported === opts.reported)
-    .map((t) => ({ ...t, repliesCount: forumReplies.filter((r) => r.threadId === t.id).length }))
-    .sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.lastReplyAt.localeCompare(a.lastReplyAt))
-}
-
-export async function getForumThread(id: string) {
-  const thread = forumThreads.find((t) => t.id === id)
-  if (!thread) return null
-  return { thread, replies: forumReplies.filter((r) => r.threadId === id) }
-}
+import { conversations, messages } from "../mock/community"
 
 export async function getConversations(memberId: string) {
   return conversations

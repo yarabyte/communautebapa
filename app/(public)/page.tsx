@@ -22,7 +22,7 @@ const steps = [
   { icon: UserPlus, title: "Créer votre compte", text: "En une minute : nom, prénom et email ou téléphone. Google et Facebook aussi." },
   { icon: ClipboardList, title: "Compléter votre profil", text: "Origines, résidence, associations et votre entreprise : à votre rythme, après l'inscription." },
   { icon: BadgeCheck, title: "Validation", text: "Un responsable vérifie votre demande, généralement sous 48 heures." },
-  { icon: KeyRound, title: "Accéder à votre espace", text: "Associations, projets, événements, forum et messagerie vous attendent." },
+  { icon: KeyRound, title: "Accéder à votre espace", text: "Associations, projets, événements et messagerie vous attendent." },
 ]
 
 const FEATURED = ["as17", "as34", "as73"]
@@ -43,7 +43,7 @@ export default async function HomePage() {
         image="/images/palais-cour-bapa.jpg"
         eyebrow="Ngouon' a Pa'a · Espace communautaire"
         title="La communauté Bapa"
-        description="Au village, dans les villes du Cameroun et dans la diaspora : retrouvez les filles et fils du Royaume Bapa, rejoignez vos associations et soutenez les projets de notre terre."
+        description="Au village, dans les villes du Cameroun et dans la diaspora : retrouvez les filles et fils du Royaume Bapa, rejoignez vos associations et soutenez les projets du terroir."
         actions={
           <>
             <CtaLink href="/inscription" size="lg" diamond>
@@ -74,7 +74,7 @@ export default async function HomePage() {
             tone="creme"
             tag="Espace membre"
             title="Votre profil et votre famille"
-            description="Votre quartier d'origine, votre lignage, votre ville de résidence : un profil qui vous relie à la communauté et à l'annuaire des membres."
+            description="Votre quartier d'origine, votre affiliation généalogique, votre ville de résidence : un profil qui vous relie à la communauté et à l'annuaire des membres."
             href="/inscription"
             size="large"
             className="lg:col-span-2"
@@ -107,7 +107,7 @@ export default async function HomePage() {
             num="05"
             tone="indigo"
             tag="Entraide"
-            title="Forum et messagerie"
+            title="Messagerie"
             description="Échangez avec les membres, organisez les descentes au village, partagez vos idées."
             href="/inscription"
           />
@@ -174,7 +174,7 @@ export default async function HomePage() {
             description="Chaque mois, le bureau met en avant une entreprise tenue par un fils ou une fille de Bapa."
             action={
               <CtaLink href="/entrepreneurs" variant="outline" size="sm">
-                Tous les entrepreneurs <ArrowRight />
+                Voir l&apos;annuaire <ArrowRight />
               </CtaLink>
             }
           />

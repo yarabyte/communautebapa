@@ -2,7 +2,7 @@
 
 import { X } from "lucide-react"
 
-import { AssociationFilterBar, AssociationMonogram, EmptyAssociations, useAssociationFilter } from "@/components/shared/association-browser"
+import { AssociationFilterBar, EmptyAssociations, useAssociationFilter } from "@/components/shared/association-browser"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { cityGroupLabel } from "@/lib/association-utils"
@@ -74,7 +74,6 @@ export function AssociationPicker({
                         className={cn("flex cursor-pointer items-center gap-3 px-3 py-2 font-normal hover:bg-muted/60", checked && "bg-accent")}
                       >
                         <Checkbox checked={checked} onCheckedChange={(v) => toggle(a.id, v === true)} />
-                        <AssociationMonogram association={a} className="size-8 rounded-md text-[9px]" />
                         <span className="min-w-0 flex-1">
                           <span className="block text-sm leading-snug text-brun">{a.name}</span>
                           <span className="block text-xs text-muted-foreground">{associationCategoryLabels[a.category]}</span>

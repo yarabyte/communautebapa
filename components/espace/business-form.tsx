@@ -127,23 +127,94 @@ export function BusinessForm({
   const services = useFieldArray({ control, name: "services" })
   const jobFields = useFieldArray({ control, name: "jobs" })
 
-  const saveDraft = () => {
-    if (form.getValues("name").trim().length < 2) {
+  const toPayload = (status: "DRAFT" | "PENDING") => {
+    const v = form.getValues()
+    return {
+      name: v.name.trim(),
+      sectorId: v.sectorId || sectors[0]?.id || "",
+      description: v.description.trim(),
+      visibility: v.visibility,
+      phone: v.phone || null,
+      whatsapp: v.whatsapp || null,
+      email: v.email || null,
+      website: v.website || null,
+      facebook: v.facebook || null,
+      instagram: v.instagram || null,
+      linkedin: v.linkedin || null,
+      tiktok: v.tiktok || null,
+      address: v.address || null,
+      city: v.city.trim(),
+      country: v.country.trim(),
+      mapsUrl: v.mapsUrl || null,
+      services: v.services
+        .filter((s) => s.name.trim().length >= 2)
+        .map((s) => ({
+          name: s.name.trim(),
+          description: s.description || null,
+          price: s.price ? Number(s.price.replace(",", ".")) : null,
+          currency: s.currency,
+        })),
+      jobs: v.jobs
+        .filter(
+          (j) =>
+            j.title.trim().length >= 3 &&
+            j.city.trim().length >= 2 &&
+            j.description.trim().length >= 10 &&
+            j.applyContact.trim().length >= 5,
+        )
+        .map((j) => ({
+          id: j.id,
+          title: j.title.trim(),
+          type: j.type,
+          city: j.city.trim(),
+          description: j.description.trim(),
+          applyContact: j.applyContact.trim(),
+          status: j.status,
+        })),
+      status,
+    }
+  }
+
+  const persist = async (status: "DRAFT" | "PENDING") => {
+    const body = toPayload(status)
+    if (status === "DRAFT" && body.name.length < 2) {
       setTab("infos")
       form.setError("name", { message: "Donnez au moins un nom à votre brouillon" })
-      return
+      return false
     }
+    if (status === "DRAFT" && !body.sectorId) {
+      body.sectorId = sectors[0]?.id ?? ""
+    }
+
+    const url = business ? `/api/businesses/${business.id}` : "/api/businesses"
+    const res = await fetch(url, {
+      method: business ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      toast.error(data.error || "Enregistrement impossible")
+      return false
+    }
+    return true
+  }
+
+  const saveDraft = async () => {
+    if (!(await persist("DRAFT"))) return
     toast.success("Brouillon enregistré", { description: "Vous pourrez le compléter et le soumettre plus tard." })
     router.push("/espace/mes-entreprises")
+    router.refresh()
   }
 
   const onSubmit = form.handleSubmit(
     async () => {
-      await new Promise((r) => setTimeout(r, 600))
+      if (!(await persist("PENDING"))) return
       toast.success(business?.status === "PUBLISHED" ? "Modifications envoyées" : "Fiche soumise pour validation", {
         description: "Un administrateur la vérifie avant publication, généralement sous 48 heures.",
       })
       router.push("/espace/mes-entreprises")
+      router.refresh()
     },
     (errs) => {
       const target = tabOf(errs)

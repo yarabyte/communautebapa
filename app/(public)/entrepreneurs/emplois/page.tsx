@@ -13,10 +13,10 @@ export default async function EmploisPublicPage() {
     <>
       <PageHero
         image="/images/paysage-bapa.png"
-        eyebrow="Entrepreneurs Bapa"
+        eyebrow="Annuaire"
         title="Offres d'emploi"
         description="Emplois, stages et missions proposés par les entreprises de la communauté."
-        breadcrumbs={[{ label: "Accueil", href: "/" }, { label: "Entrepreneurs", href: "/entrepreneurs" }, { label: "Offres d'emploi" }]}
+        breadcrumbs={[{ label: "Accueil", href: "/" }, { label: "Annuaire", href: "/entrepreneurs" }, { label: "Offres d'emploi" }]}
       />
       <section className="mx-auto max-w-5xl px-5 py-14 sm:px-8">
         {jobs.length === 0 ? (

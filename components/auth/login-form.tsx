@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Eye, EyeOff, Loader2, Mail, Smartphone } from "lucide-react"
+import { signIn } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -42,10 +43,25 @@ function EmailLogin() {
     defaultValues: { email: "", password: "", remember: true },
   })
 
-  const onSubmit = async () => {
-    await wait(700)
+  const onSubmit = async (v: z.infer<typeof emailSchema>) => {
+    const result = await signIn("credentials", {
+      email: v.email,
+      password: v.password,
+      redirect: false,
+    })
+    if (result?.error) {
+      const message =
+        result.error === "ACCOUNT_REJECTED"
+          ? "Votre inscription n'a pas été retenue."
+          : result.error === "ACCOUNT_SUSPENDED"
+            ? "Votre compte est suspendu."
+            : "Email ou mot de passe incorrect."
+      toast.error(message)
+      return
+    }
     toast.success("Bon retour parmi nous !")
     router.push(redirect)
+    router.refresh()
   }
 
   const { errors, isSubmitting } = form.formState
@@ -156,6 +172,8 @@ function PhoneLogin() {
 }
 
 export function LoginForm() {
+  const redirect = useSearchParams().get("redirect") ?? "/espace"
+
   return (
     <div className="flex flex-col gap-6">
       <Tabs defaultValue="email" className="gap-5">
@@ -175,7 +193,7 @@ export function LoginForm() {
         </TabsContent>
       </Tabs>
       <OrSeparator label="ou continuer avec" />
-      <SocialButtons />
+      <SocialButtons callbackUrl={redirect} />
     </div>
   )
 }

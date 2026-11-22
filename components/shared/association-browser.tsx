@@ -2,14 +2,16 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Globe2, MapPin, Search, X } from "lucide-react"
+import { ArrowUpRight, Search, X } from "lucide-react"
 
+import { BapaMotif } from "@/components/brand/pattern"
 import { JoinAssociationButton, MemberBadge } from "@/components/espace/join-association-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SearchableSelect } from "@/components/shared/searchable-select"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cityGroupLabel, groupByCountryAndCity, matchesAssociation, monogram, type CountryGroup } from "@/lib/association-utils"
+import { presidentName } from "@/lib/mock/associations"
 import { associationCategoryLabels, associationZoneLabels } from "@/lib/labels"
 import type { Association, AssociationCategory } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -74,14 +76,14 @@ type FilterState = ReturnType<typeof useAssociationFilter>
 
 export function AssociationFilterBar({ state, total }: { state: FilterState; total: number }) {
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
+    <div className="flex flex-col gap-2.5 rounded-2xl border border-border/80 bg-card/80 p-2.5 shadow-[0_10px_30px_-24px_rgba(57,37,23,0.45)] backdrop-blur-sm sm:flex-row sm:items-center sm:p-3">
       <div className="relative min-w-0 flex-1">
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={state.q}
           onChange={(e) => state.setQ(e.target.value)}
           placeholder="Rechercher une association, une ville, un pays…"
-          className="h-10 pl-9"
+          className="h-11 border-transparent bg-background pl-10 shadow-none focus-visible:border-or/50"
           aria-label="Rechercher une association"
         />
       </div>
@@ -106,7 +108,7 @@ export function AssociationFilterBar({ state, total }: { state: FilterState; tot
         />
       )}
       <Select value={state.category} onValueChange={(v) => state.setCategory(v as AssociationCategory | typeof ALL)}>
-        <SelectTrigger className="h-10 w-full sm:w-44" aria-label="Type d'association">
+        <SelectTrigger className="h-11 w-full border-transparent bg-background shadow-none sm:w-44" aria-label="Type d'association">
           <SelectValue>
             {state.category === ALL ? "Tous les types" : associationCategoryLabels[state.category]}
           </SelectValue>
@@ -142,10 +144,10 @@ export function AssociationMonogram({ association, className }: { association: A
 
 export function EmptyAssociations({ onReset }: { onReset: () => void }) {
   return (
-    <div className="rounded-2xl border border-dashed p-10 text-center">
-      <p className="font-medium">Aucune association ne correspond à votre recherche.</p>
+    <div className="rounded-2xl border border-dashed border-or/40 bg-creme-light/60 p-10 text-center">
+      <p className="font-heading text-lg text-brun">Aucune association ne correspond</p>
       <p className="mt-1 text-sm text-muted-foreground">Essayez un autre nom de ville ou de pays.</p>
-      <Button variant="outline" size="sm" className="mt-4 rounded-full" onClick={onReset}>
+      <Button variant="outline" size="sm" className="mt-5 rounded-full" onClick={onReset}>
         <X /> Effacer les filtres
       </Button>
     </div>
@@ -158,15 +160,28 @@ const SMALL_COUNTRY = 3
 type RowProps = { association: Association; href: string; place?: string; joinable: boolean; member: boolean }
 
 function AssociationRow({ association: a, href, place, joinable, member }: RowProps) {
+  const responsable = presidentName(a.id)
   return (
-    <li className="group flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-muted/60">
-      <AssociationMonogram association={a} className="size-8 rounded-md text-[9px]" />
+    <li className="group flex items-center gap-3 border-b border-border/50 py-3 last:border-b-0">
       <Link href={href} className="min-w-0 flex-1" title={a.fullName ?? a.name}>
-        <span className="block truncate text-sm leading-tight font-medium group-hover:text-primary">{a.name}</span>
-        <span className="block truncate text-[11px] text-muted-foreground">
-          {associationCategoryLabels[a.category]}
-          {place && ` · ${place}`}
-          {a.adevipa && <span className="font-medium text-or"> · ADEVIPA</span>}
+        <span className="flex items-start justify-between gap-3">
+          <span className="min-w-0">
+            <span className="block truncate text-[15px] leading-snug font-medium text-brun transition-colors group-hover:text-terre">
+              {a.name}
+            </span>
+            {(responsable || place) && (
+              <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted-foreground">
+                {responsable && <span>Responsable : {responsable}</span>}
+                {responsable && place && (
+                  <span aria-hidden className="text-border">
+                    ·
+                  </span>
+                )}
+                {place && <span>{place}</span>}
+              </span>
+            )}
+          </span>
+          <ArrowUpRight className="mt-0.5 size-4 shrink-0 text-or opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
         </span>
       </Link>
       {joinable && (member ? <MemberBadge /> : <JoinAssociationButton name={a.name} className="h-7 px-2.5 text-xs" />)}
@@ -176,32 +191,34 @@ function AssociationRow({ association: a, href, place, joinable, member }: RowPr
 
 function GroupCard({ title, subtitle, count, children }: { title: string; subtitle?: string; count: number; children: React.ReactNode }) {
   return (
-    <div className="mb-3 break-inside-avoid rounded-xl border bg-card px-3 py-2.5 shadow-xs">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <h3 className="flex min-w-0 items-center gap-1.5 text-sm font-semibold">
-          <MapPin className="size-3.5 shrink-0 text-or" />
+    <div className="relative mb-4 break-inside-avoid overflow-hidden rounded-2xl border border-or/25 bg-card shadow-[0_12px_28px_-24px_rgba(57,37,23,0.4)]">
+      <BapaMotif tone="gold" fade="corner" className="opacity-[0.18]" />
+      <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-or/50 to-transparent" />
+      <div className="relative flex items-baseline justify-between gap-3 border-b border-border/60 bg-secondary/40 px-4 py-3 backdrop-blur-[2px]">
+        <h3 className="min-w-0 font-heading text-[15px] tracking-wide text-brun">
           <span className="truncate">{title}</span>
-          {subtitle && <span className="truncate text-xs font-normal text-muted-foreground">· {subtitle}</span>}
+          {subtitle && <span className="ml-2 font-sans text-xs font-normal tracking-normal text-muted-foreground">{subtitle}</span>}
         </h3>
-        <span className="text-xs text-muted-foreground tabular-nums">{count}</span>
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{count}</span>
       </div>
-      <ul className="-mx-1.5">{children}</ul>
+      <ul className="relative px-4">{children}</ul>
     </div>
   )
 }
 
 function GroupSection({ id, title, subtitle, meta, children }: { id: string; title: string; subtitle?: string; meta: string; children: React.ReactNode }) {
   return (
-    <section aria-labelledby={id} className="space-y-3">
-      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b pb-2">
-        <h2 id={id} className="flex items-center gap-2 font-heading text-lg font-semibold">
-          <Globe2 className="size-4 text-primary" />
-          {title}
-          {subtitle && <span className="font-sans text-xs font-normal text-muted-foreground">{subtitle}</span>}
-        </h2>
-        <p className="text-xs text-muted-foreground">{meta}</p>
+    <section aria-labelledby={id} className="space-y-4">
+      <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-b border-or/30 pb-3">
+        <div>
+          {subtitle && <p className="mb-1 text-[11px] font-medium tracking-[0.14em] text-or-dark uppercase">{subtitle}</p>}
+          <h2 id={id} className="font-heading text-2xl tracking-wide text-brun">
+            {title}
+          </h2>
+        </div>
+        <p className="pb-1 text-xs text-muted-foreground">{meta}</p>
       </header>
-      <div className="columns-1 gap-3 @2xl:columns-2 @5xl:columns-3">{children}</div>
+      <div className="columns-1 gap-4 @2xl:columns-2 @5xl:columns-3">{children}</div>
     </section>
   )
 }
@@ -253,7 +270,7 @@ export function AssociationBrowser<T extends Association>({
   )
 
   return (
-    <div className="@container space-y-6">
+    <div className="@container space-y-8">
       <AssociationFilterBar state={state} total={associations.length} />
 
       {state.isFiltered && (
@@ -276,9 +293,9 @@ export function AssociationBrowser<T extends Association>({
             <GroupCard key={block.key} title={block.title} subtitle={block.subtitle} count={block.count}>
               {block.cities.map((city) => [
                 city.label && (
-                  <li key={`${city.key}-label`} className="flex items-center justify-between px-1.5 pt-1.5 pb-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase first:pt-0.5">
-                    {city.label}
-                    <span className="tabular-nums">{city.associations.length}</span>
+                  <li key={`${city.key}-label`} className="flex items-center justify-between pt-3.5 pb-1 first:pt-2.5">
+                    <span className="text-[11px] font-medium tracking-[0.12em] text-brun-soft uppercase">{city.label}</span>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">{city.associations.length}</span>
                   </li>
                 ),
                 ...city.associations.map((a) => row(a)),

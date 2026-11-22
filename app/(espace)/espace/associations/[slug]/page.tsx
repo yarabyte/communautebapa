@@ -4,9 +4,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, BadgeCheck, BookText, CalendarClock, Landmark, MapPin, MessageCircle, Settings, Users } from "lucide-react"
 
+import { MembersImport } from "@/components/admin/members-import"
 import { Pill } from "@/components/brand/pill"
 import { DocumentsTable } from "@/components/espace/documents-table"
-import { ForumThreadList } from "@/components/espace/forum-thread-list"
 import { JoinAssociationButton, MemberBadge } from "@/components/espace/join-association-button"
 import { MemberAvatar } from "@/components/espace/member-avatar"
 import { SectionCard } from "@/components/espace/section-card"
@@ -16,9 +16,8 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { associationPlace } from "@/lib/association-utils"
 import { getAssociation, getAssociationMembers } from "@/lib/data/associations"
-import { getForumThreads } from "@/lib/data/community"
 import { getDocuments, getEvents, getPosts } from "@/lib/data/content"
-import { getCurrentMember, getQuartierName } from "@/lib/data/members"
+import { getCurrentMember, getQuartiers, getQuartierName } from "@/lib/data/members"
 import { formatDate } from "@/lib/format"
 import { associationCategoryLabels, membershipRoleLabels } from "@/lib/labels"
 
@@ -27,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: a?.name ?? "Association" }
 }
 
-const TABS = ["apercu", "membres", "evenements", "documents", "forum"]
+const TABS = ["apercu", "membres", "evenements", "documents"]
 
 export default async function EspaceAssociationPage({
   params,
@@ -41,16 +40,16 @@ export default async function EspaceAssociationPage({
   const association = await getAssociation(slug)
   if (!association) notFound()
   const me = await getCurrentMember()
-  const [members, events, documents, threads, posts] = await Promise.all([
+  const [members, events, documents, posts, quartiers] = await Promise.all([
     getAssociationMembers(association.id),
     getEvents({ associationId: association.id }),
     getDocuments({ associationId: association.id }),
-    getForumThreads({ associationId: association.id }),
     getPosts({ associationId: association.id }),
+    getQuartiers(),
   ])
   const myMembership = members.find((m) => m.member.id === me.id)?.membership
-  const isManager = myMembership?.role === "RESPONSABLE"
-  const president = members.find((m) => m.member.id === association.presidentId)?.member
+  const isManager = myMembership?.role === "RESPONSABLE" || myMembership?.role === "SECRETAIRE" || me.role === "SUPER_ADMIN"
+  const president = members.find((m) => m.membership.role === "RESPONSABLE")?.member
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,7 +97,6 @@ export default async function EspaceAssociationPage({
             ["membres", `Membres (${members.length})`],
             ["evenements", `Événements (${events.length})`],
             ["documents", `Documents (${documents.length})`],
-            ["forum", `Forum (${threads.length})`],
           ].map(([v, l]) => (
             <TabsTrigger key={v} value={v} className="flex-none px-1">
               {l}
@@ -150,7 +148,8 @@ export default async function EspaceAssociationPage({
           </SectionCard>
         </TabsContent>
 
-        <TabsContent value="membres">
+        <TabsContent value="membres" className="flex flex-col gap-4">
+          {isManager && <MembersImport associationId={association.id} associationName={association.name} />}
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
             {members.map(({ member, membership }) => (
               <Link key={member.id} href={`/espace/annuaire/${member.id}`} className="flex items-center gap-3 rounded-xl border border-border bg-card p-2.5 hover:border-terre/40">
@@ -160,7 +159,7 @@ export default async function EspaceAssociationPage({
                     {member.firstName} {member.lastName}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {getQuartierName(member.quartierId)}
+                    {getQuartierName(member.quartierId, quartiers)}
                     {member.city && ` · ${member.city}`}
                   </p>
                 </div>
@@ -184,10 +183,6 @@ export default async function EspaceAssociationPage({
 
         <TabsContent value="documents">
           <DocumentsTable documents={documents} showAssociation={false} />
-        </TabsContent>
-
-        <TabsContent value="forum">
-          <ForumThreadList threads={threads} />
         </TabsContent>
       </Tabs>
     </div>

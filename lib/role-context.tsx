@@ -4,8 +4,6 @@ import { createContext, useContext, useEffect, useState } from "react"
 
 import type { Role } from "./types"
 
-const STORAGE_KEY = "bapa-demo-role"
-
 type RoleContextValue = {
   role: Role
   setRole: (role: Role) => void
@@ -13,18 +11,16 @@ type RoleContextValue = {
 
 const RoleContext = createContext<RoleContextValue | null>(null)
 
-/** Rôle fictif pour prévisualiser l'interface ; sera remplacé par la session authentifiée. */
-export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRoleState] = useState<Role>("SUPER_ADMIN")
+/** Rôle session (passé depuis le serveur) ; le sélecteur topbar peut encore forcer une vue locale. */
+export function RoleProvider({ children, initialRole }: { children: React.ReactNode; initialRole?: Role }) {
+  const [role, setRoleState] = useState<Role>(initialRole ?? "MEMBER")
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY) as Role | null
-    if (saved) setRoleState(saved)
-  }, [])
+    if (initialRole) setRoleState(initialRole)
+  }, [initialRole])
 
   const setRole = (next: Role) => {
     setRoleState(next)
-    window.localStorage.setItem(STORAGE_KEY, next)
   }
 
   return <RoleContext.Provider value={{ role, setRole }}>{children}</RoleContext.Provider>

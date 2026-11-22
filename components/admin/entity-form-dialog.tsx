@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Plus, Upload } from "lucide-react"
 import { toast } from "sonner"
 
@@ -33,19 +33,77 @@ type Props = {
   trigger?: React.ReactNode
   submitLabel?: string
   successMessage: string
+  /** Si fourni, reçoit les valeurs du formulaire. Retourner false pour garder le dialogue ouvert. */
+  onSubmit?: (values: Record<string, string>) => Promise<boolean | void> | boolean | void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function EntityFormDialog({ title, description, fields, triggerLabel = "Ajouter", trigger, submitLabel = "Enregistrer", successMessage }: Props) {
-  const [open, setOpen] = useState(false)
-  const [errors, setErrors] = useState<string[]>([])
+function initialSelects(fields: FieldConfig[]) {
+  const values: Record<string, string> = {}
+  for (const f of fields) {
+    if (f.type === "select") values[f.name] = f.defaultValue ?? ""
+  }
+  return values
+}
 
-  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+export function EntityFormDialog({
+  title,
+  description,
+  fields,
+  triggerLabel = "Ajouter",
+  trigger,
+  submitLabel = "Enregistrer",
+  successMessage,
+  onSubmit,
+  open: openProp,
+  onOpenChange,
+}: Props) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const open = openProp ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
+  const [errors, setErrors] = useState<string[]>([])
+  const [pending, setPending] = useState(false)
+  const [selects, setSelects] = useState(() => initialSelects(fields))
+
+  useEffect(() => {
+    if (open) setSelects(initialSelects(fields))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const data = new FormData(e.currentTarget)
-    const isEmpty = (v: FormDataEntryValue | null) => (v instanceof File ? v.size === 0 : !String(v ?? "").trim())
-    const missing = fields.filter((f) => f.required && isEmpty(data.get(f.name))).map((f) => f.name)
+    const values: Record<string, string> = { ...selects }
+    for (const f of fields) {
+      if (f.type === "select") continue
+      const raw = data.get(f.name)
+      if (f.type === "switch") {
+        values[f.name] = raw ? "true" : "false"
+      } else {
+        values[f.name] = raw instanceof File ? raw.name : String(raw ?? "").trim()
+      }
+    }
+
+    const missing = fields
+      .filter((f) => f.required && !(f.type === "select" ? values[f.name] : values[f.name]?.trim()))
+      .map((f) => f.name)
     setErrors(missing)
     if (missing.length) return
+
+    if (onSubmit) {
+      setPending(true)
+      try {
+        const ok = await onSubmit(values)
+        if (ok === false) return
+        setOpen(false)
+        toast.success(successMessage)
+      } finally {
+        setPending(false)
+      }
+      return
+    }
+
     setOpen(false)
     toast.success(successMessage)
   }
@@ -58,13 +116,15 @@ export function EntityFormDialog({ title, description, fields, triggerLabel = "A
         setErrors([])
       }}
     >
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button className="rounded-full">
-            <Plus /> {triggerLabel}
-          </Button>
-        )}
-      </DialogTrigger>
+      {openProp === undefined && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button className="rounded-full">
+              <Plus /> {triggerLabel}
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="font-heading">{title}</DialogTitle>
@@ -82,7 +142,7 @@ export function EntityFormDialog({ title, description, fields, triggerLabel = "A
                       <Label htmlFor={id}>{f.label}</Label>
                       {f.hint && <p className="text-xs text-muted-foreground">{f.hint}</p>}
                     </div>
-                    <Switch id={id} name={f.name} defaultChecked={f.defaultValue === "true"} />
+                    <Switch id={id} name={f.name} defaultChecked={f.defaultValue === "true"} value="true" />
                   </div>
                 ) : (
                   <>
@@ -93,7 +153,7 @@ export function EntityFormDialog({ title, description, fields, triggerLabel = "A
                     {f.type === "textarea" ? (
                       <Textarea id={id} name={f.name} rows={5} placeholder={f.placeholder} defaultValue={f.defaultValue} aria-invalid={invalid} />
                     ) : f.type === "select" ? (
-                      <Select name={f.name} defaultValue={f.defaultValue}>
+                      <Select value={selects[f.name] || undefined} onValueChange={(v) => setSelects((s) => ({ ...s, [f.name]: v }))}>
                         <SelectTrigger id={id} className="w-full" aria-invalid={invalid}>
                           <SelectValue placeholder={f.placeholder ?? "Choisir…"} />
                         </SelectTrigger>
@@ -125,10 +185,10 @@ export function EntityFormDialog({ title, description, fields, triggerLabel = "A
           })}
         </form>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>
+          <Button variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
             Annuler
           </Button>
-          <Button type="submit" form={`form-${title}`}>
+          <Button type="submit" form={`form-${title}`} disabled={pending}>
             {submitLabel}
           </Button>
         </DialogFooter>

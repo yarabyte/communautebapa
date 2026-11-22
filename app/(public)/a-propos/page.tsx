@@ -24,7 +24,7 @@ const charter = [
   "Chaque membre s'engage à fournir des informations exactes sur son identité et ses origines.",
   "Les informations de l'annuaire sont réservées aux membres et ne peuvent être utilisées à des fins commerciales.",
   "Les contributions aux projets sont volontaires. Elles font l'objet d'un reçu et sont affectées au projet choisi.",
-  "Le forum et la messagerie sont des espaces d'échange respectueux. Les modérateurs peuvent retirer tout contenu contraire à la charte.",
+  "La messagerie est un espace d'échange respectueux. Les modérateurs peuvent retirer tout contenu contraire à la charte.",
   "Tout manquement grave peut entraîner la suspension du compte, après avis du bureau de la communauté.",
 ]
 

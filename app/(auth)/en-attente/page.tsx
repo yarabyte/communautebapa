@@ -26,7 +26,7 @@ export default async function PendingPage({ searchParams }: { searchParams: Prom
       icon: UserPen,
     },
     { title: "Validation par un responsable", text: "Délai habituel : 48 heures. Vous serez notifié par email ou SMS.", state: "todo", icon: Hourglass },
-    { title: "Accès complet à l'espace membre", text: "Annuaire, forum, projets, contributions et messagerie.", state: "todo", icon: KeyRound },
+    { title: "Accès complet à l'espace membre", text: "Annuaire, projets, contributions et messagerie.", state: "todo", icon: KeyRound },
   ] as const
 
   return (

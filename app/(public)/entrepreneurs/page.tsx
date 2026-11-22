@@ -7,19 +7,22 @@ import { CtaLink } from "@/components/brand/cta"
 import { PageHero } from "@/components/brand/page-hero"
 import { BusinessCard } from "@/components/shared/business-card"
 import { BusinessFilterBar } from "@/components/shared/business-filter-bar"
-import { getBusinessCountries, getBusinesses, getBusinessStats, getJobOffers, getSectors } from "@/lib/data/businesses"
+import { getBusinesses, getBusinessStats, getDirectoryOptions, getJobOffers } from "@/lib/data/businesses"
 
 export const metadata: Metadata = {
-  title: "Entrepreneurs Bapa",
-  description: "Entreprises, commerces et cabinets tenus par des filles et fils de Bapa, au Cameroun et dans la diaspora.",
+  title: "Annuaire des métiers et expertise",
+  description: "Entrepreneurs, entreprises, métiers et expertises des filles et fils de Bapa, au Cameroun et dans la diaspora.",
 }
 
-export default async function EntrepreneursPage({ searchParams }: { searchParams: Promise<{ q?: string; secteur?: string; pays?: string }> }) {
-  const { q, secteur, pays } = await searchParams
-  const [list, sectors, countries, stats, jobs] = await Promise.all([
-    getBusinesses({ publicOnly: true, q, sectorId: secteur, country: pays }),
-    getSectors(),
-    getBusinessCountries(),
+export default async function EntrepreneursPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; entrepreneur?: string; entreprise?: string; metier?: string; expertise?: string }>
+}) {
+  const { q, entrepreneur, entreprise, metier, expertise } = await searchParams
+  const [list, options, stats, jobs] = await Promise.all([
+    getBusinesses({ publicOnly: true, q, ownerId: entrepreneur, businessId: entreprise, metier, expertise }),
+    getDirectoryOptions(true),
     getBusinessStats(),
     getJobOffers({ publicOnly: true }),
   ])
@@ -29,9 +32,13 @@ export default async function EntrepreneursPage({ searchParams }: { searchParams
       <PageHero
         image="/images/gastronomie-bapa.jpg"
         eyebrow="Économie communautaire"
-        title="Entrepreneurs Bapa"
-        description="Commerces, cabinets, ateliers et exploitations tenus par des filles et fils de Bapa. Faites travailler la communauté."
-        breadcrumbs={[{ label: "Accueil", href: "/" }, { label: "Entrepreneurs" }]}
+        title="Annuaire des métiers et expertise"
+        description="Retrouvez les entrepreneurs de la communauté, leurs entreprises, leur métier et leurs expertises."
+        breadcrumbs={[
+          { label: "Accueil", href: "/" },
+          { label: "Annuaire", href: "/entrepreneurs" },
+          { label: "Métiers et expertise" },
+        ]}
         stats={[
           { title: `${stats.published} entreprises`, text: "Validées par la communauté" },
           { title: `${stats.openJobs} offres d'emploi`, text: "Publiées par les entrepreneurs" },
@@ -39,10 +46,10 @@ export default async function EntrepreneursPage({ searchParams }: { searchParams
       />
       <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12">
         <Suspense>
-          <BusinessFilterBar sectors={sectors} countries={countries} />
+          <BusinessFilterBar options={options} />
         </Suspense>
 
-        {(q || secteur || pays) && (
+        {(q || entrepreneur || entreprise || metier || expertise) && (
           <p className="mt-4 text-sm text-muted-foreground">
             {list.length} entreprise{list.length > 1 ? "s" : ""} trouvée{list.length > 1 ? "s" : ""}
           </p>
