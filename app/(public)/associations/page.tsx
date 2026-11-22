@@ -7,6 +7,8 @@ import { getAssociationStats, getAssociations } from "@/lib/data/associations"
 
 export const metadata: Metadata = { title: "Associations" }
 
+export const dynamic = "force-dynamic"
+
 export default async function AssociationsPage({ searchParams }: { searchParams: Promise<{ pays?: string }> }) {
   const { pays } = await searchParams
   const [list, stats] = await Promise.all([getAssociations({ publicOnly: true }), getAssociationStats()])

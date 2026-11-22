@@ -27,6 +27,9 @@ const steps = [
 
 const FEATURED = ["as17", "as34", "as73"]
 
+/** Données Prisma lues à la requête — évite l'échec du build Docker sans DB. */
+export const dynamic = "force-dynamic"
+
 export default async function HomePage() {
   const [associations, associationStats, events, projects, featured] = await Promise.all([
     getAssociations({ publicOnly: true }),

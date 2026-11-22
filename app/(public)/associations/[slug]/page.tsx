@@ -6,14 +6,13 @@ import { BadgeCheck, BookText, CalendarClock, CalendarDays, Globe2, Landmark, Ma
 import { CtaLink } from "@/components/brand/cta"
 import { PageHero } from "@/components/brand/page-hero"
 import { Pill } from "@/components/brand/pill"
-import { getAssociation, getAssociations } from "@/lib/data/associations"
+import { getAssociation } from "@/lib/data/associations"
 import { getEvents } from "@/lib/data/content"
 import { formatDate } from "@/lib/format"
 import { associationCategoryLabels } from "@/lib/labels"
 
-export async function generateStaticParams() {
-  return (await getAssociations({ publicOnly: true })).map((a) => ({ slug: a.slug }))
-}
+/** Pas de SSG : la DB Coolify n'est pas dispo pendant `docker build`. */
+export const dynamic = "force-dynamic"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const a = await getAssociation((await params).slug)

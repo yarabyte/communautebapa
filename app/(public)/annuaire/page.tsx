@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description: "Retrouvez les filles et fils de Bapa par quartier d'origine, pays de résidence ou profession.",
 }
 
+export const dynamic = "force-dynamic"
+
 type SearchParams = Promise<{ q?: string; quartier?: string; pays?: string; profession?: string }>
 
 export default async function PublicAnnuairePage({ searchParams }: { searchParams: SearchParams }) {

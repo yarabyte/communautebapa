@@ -13,6 +13,8 @@ import { getBusinesses } from "@/lib/data/businesses"
 import { getMember } from "@/lib/data/members"
 import { membershipRoleLabels } from "@/lib/labels"
 
+export const dynamic = "force-dynamic"
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const m = await getMember((await params).id)
   return { title: m ? `${m.firstName} ${m.lastName}` : "Membre" }
