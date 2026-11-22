@@ -18,17 +18,9 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
 
 RUN npx prisma generate
 
-# Env inline : prioritaire sur les ARG que Coolify injecte (DB/OAuth réels).
-# Sinon `next build` tente Prisma/OAuth et échoue.
-RUN DOCKER_BUILD=1 \
-    DATABASE_URL="postgresql://build:build@127.0.0.1:5432/build" \
-    AUTH_SECRET="build-only-placeholder" \
-    AUTH_URL="$NEXT_PUBLIC_SITE_URL" \
-    AUTH_GOOGLE_ID="" \
-    AUTH_GOOGLE_SECRET="" \
-    AUTH_APPLE_ID="" \
-    AUTH_APPLE_SECRET="" \
-    npm run build
+# Ne PAS mettre DATABASE_URL=/AUTH_* sur la ligne RUN : Coolify les réécrit avec les vrais secrets.
+# Le script force un env de build sûr.
+RUN chmod +x scripts/docker-build-app.sh && sh scripts/docker-build-app.sh
 
 FROM node:20-alpine AS runner
 WORKDIR /app
