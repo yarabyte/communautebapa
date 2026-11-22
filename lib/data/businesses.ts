@@ -145,7 +145,7 @@ const businessInclude = {
 } satisfies Prisma.BusinessInclude
 
 async function uniqueBusinessSlug(base: string, excludeId?: string) {
-  let slug = slugify(base) || "entreprise"
+  const slug = slugify(base) || "entreprise"
   let n = 0
   for (;;) {
     const candidate = n === 0 ? slug : `${slug}-${n}`
@@ -156,7 +156,7 @@ async function uniqueBusinessSlug(base: string, excludeId?: string) {
 }
 
 async function uniqueJobSlug(base: string, excludeId?: string) {
-  let slug = slugify(base) || "offre"
+  const slug = slugify(base) || "offre"
   let n = 0
   for (;;) {
     const candidate = n === 0 ? slug : `${slug}-${n}`

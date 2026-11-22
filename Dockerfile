@@ -11,7 +11,18 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED=1
+
+# Coolify injecte ces build-args ; NEXT_PUBLIC_* doit être dispo au build Next
+ARG NEXT_PUBLIC_SITE_URL
+ARG AUTH_URL
+ARG AUTH_SECRET
+ARG DATABASE_URL
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    AUTH_URL=$AUTH_URL \
+    AUTH_SECRET=$AUTH_SECRET \
+    DATABASE_URL=$DATABASE_URL
+
 RUN npx prisma generate && npm run build
 
 FROM node:20-alpine AS runner

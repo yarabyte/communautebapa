@@ -29,7 +29,7 @@ export function BusinessesAdmin({ businesses, sectors }: { businesses: BusinessW
   const [featuredId, setFeaturedId] = useState(businesses.find((b) => b.featured)?.id)
   const [rejecting, setRejecting] = useState<BusinessWithMeta | null>(null)
   const [reason, setReason] = useState("")
-  const [busy, setBusy] = useState(false)
+  const [, setBusy] = useState(false)
 
   const rows = useMemo(
     () => businesses.map((b) => ({ ...b, status: statuses[b.id] ?? b.status, featured: b.id === featuredId })),
