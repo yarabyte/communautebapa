@@ -43,6 +43,8 @@ function appleEnabled() {
 
 function googleEnabled() {
   if (isDockerBuild) return false
+  // Opt-in : comme Apple, un Google mal configuré peut renvoyer error=Configuration
+  if (process.env.AUTH_GOOGLE_ENABLED !== "1") return false
   return Boolean(process.env.AUTH_GOOGLE_ID?.trim() && process.env.AUTH_GOOGLE_SECRET?.trim())
 }
 

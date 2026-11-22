@@ -1,0 +1,34 @@
+# À coller dans Coolify → Environment Variables (email/mdp uniquement).
+# Ne pas activer Google/Apple tant que la connexion email ne marche pas.
+
+DATABASE_URL=postgres://postgres:REMPLACER_MOT_DE_PASSE@llzvmstdrltclc0nr35qffuq:5432/postgres
+
+AUTH_SECRET=b7724dbee347fb8a2e5e7fea826fde77d44cad25f9513145b18c970e24c26b52
+AUTH_URL=https://communaute.bapa-officiel.com
+NEXT_PUBLIC_SITE_URL=https://communaute.bapa-officiel.com
+
+# Laisser vides / absents pour l'instant (pas de AUTH_*_ENABLED)
+# AUTH_GOOGLE_ENABLED=
+# AUTH_GOOGLE_ID=
+# AUTH_GOOGLE_SECRET=
+# AUTH_APPLE_ENABLED=
+# AUTH_APPLE_ID=
+# AUTH_APPLE_SECRET=
+
+SMTP_HOST=bapa-officiel.com
+SMTP_PORT=465
+SMTP_USER=bienvenue@bapa-officiel.com
+SMTP_PASS=REMPLACER_SMTP_PASS
+SMTP_FROM="Communauté Bapa <bienvenue@bapa-officiel.com>"
+SMTP_TLS_REJECT_UNAUTHORIZED=false
+
+WHATSAPP_TOKEN=REMPLACER
+WHATSAPP_PHONE_NUMBER_ID=1421124151091958
+WHATSAPP_TEMPLATE_REGISTRATION=inscription_recue
+WHATSAPP_TEMPLATE_TEMP_PASSWORD=mot_de_passe_temporaire
+WHATSAPP_TEMPLATE_VALIDATED=compte_valide
+WHATSAPP_TEMPLATE_REJECTED=compte_refuse
+WHATSAPP_TEMPLATE_LANG=fr
+
+SEED_ADMIN_EMAIL=admin@bapa-officiel.com
+SEED_ADMIN_PASSWORD=AdminBapa2026!
