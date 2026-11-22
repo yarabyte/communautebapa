@@ -51,11 +51,13 @@ function EmailLogin() {
     })
     if (result?.error) {
       const message =
-        result.error === "ACCOUNT_REJECTED"
-          ? "Votre inscription n'a pas été retenue."
-          : result.error === "ACCOUNT_SUSPENDED"
-            ? "Votre compte est suspendu."
-            : "Email ou mot de passe incorrect."
+        result.error === "Configuration"
+          ? "Configuration Auth incorrecte (AUTH_URL en https, AUTH_SECRET, Apple/Google). Vérifiez les variables Coolify."
+          : result.error === "ACCOUNT_REJECTED"
+            ? "Votre inscription n'a pas été retenue."
+            : result.error === "ACCOUNT_SUSPENDED"
+              ? "Votre compte est suspendu."
+              : "Email ou mot de passe incorrect. Sur Coolify, l'admin n'existe qu'après seed / ensure-admin."
       toast.error(message)
       return
     }

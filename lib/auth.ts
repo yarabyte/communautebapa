@@ -36,7 +36,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ...(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET
       ? [Google({ allowDangerousEmailAccountLinking: true })]
       : []),
-    ...(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET && process.env.AUTH_APPLE_SECRET.startsWith("eyJ")
+    // Services ID uniquement (ex. com.bapa-officiel.communaute), pas l'App ID …communaute1
+    ...(process.env.AUTH_APPLE_ID &&
+    process.env.AUTH_APPLE_SECRET?.startsWith("eyJ") &&
+    !process.env.AUTH_APPLE_ID.endsWith("1")
       ? [Apple({ allowDangerousEmailAccountLinking: true })]
       : []),
     Credentials({
